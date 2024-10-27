@@ -81,7 +81,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
 
               // Welcome text
               const Text(
-                'Welcome to MyApp',
+                'Welcome to Hadirrr',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
