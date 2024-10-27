@@ -27,34 +27,35 @@ class _HalamanLoginState extends State<HalamanLogin> {
   final _passwordController = TextEditingController();
 
   void _login() {
-    String email = _emailController.text;
-    String password = _passwordController.text;
+  String email = _emailController.text;
+  String password = _passwordController.text;
 
-    if (email == 'dany' && password == '123456') {
-      Navigator.push(
-        context,
-        CupertinoPageRoute(
-          builder: (context) => DashboardPage(username: email),
-        ),
-      );
-    } else {
-      showCupertinoDialog(
-        context: context,
-        builder: (context) => CupertinoAlertDialog(
-          title: const Text('Login Gagal'),
-          content: const Text('Username atau password salah.'),
-          actions: <Widget>[
-            CupertinoDialogAction(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      );
-    }
+  if (email == 'dany2811' && password == '123456') {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => DashboardPage(username: email, password: password), // Pass password here
+      ),
+    );
+  } else {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Login Gagal'),
+        content: const Text('Username atau password salah.'),
+        actions: <Widget>[
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +105,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
               // Email field
               CupertinoTextField(
                 controller: _emailController,
-                placeholder: 'Masukan Email',
+                placeholder: 'Masukan Username',
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                 decoration: BoxDecoration(
                   color: CupertinoColors.extraLightBackgroundGray,

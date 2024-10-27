@@ -2,8 +2,9 @@ import 'package:flutter/cupertino.dart';
 
 class DashboardPage extends StatelessWidget {
   final String username;
+  final String password; // Add password variable
 
-  const DashboardPage({super.key, required this.username});
+  const DashboardPage({super.key, required this.username, required this.password}); // Accept password in the constructor
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +37,17 @@ class DashboardPage extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              const SizedBox(height: 20), // Adjust spacing
+
+              // Display the password
+              Text(
+                'Password: $password', // Show the password
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: CupertinoColors.inactiveGray,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
               const SizedBox(height: 30),
 
               // Additional options or actions (optional)
@@ -53,3 +65,4 @@ class DashboardPage extends StatelessWidget {
     );
   }
 }
+
