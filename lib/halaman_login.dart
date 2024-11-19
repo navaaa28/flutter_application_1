@@ -44,15 +44,34 @@ class _HalamanLoginState extends State<HalamanLogin> {
     }
   }
 
-  void _forgotPassword() {
-    // Tambahkan logika lupa password jika diperlukan
+  void _informasi() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('INFORMASI!'),
+        content: const Text('Aplikasi Ini Dibuat Oleh Dany Faturrochman-22552011080'),
+        actions: <Widget>[
+          CupertinoDialogAction(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Halaman Masuk'),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Halaman Masuk'),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _informasi,
+          child: const Icon(CupertinoIcons.info_circle, size: 28),  // Menampilkan dialog informasi saat ditekan
+        ),
       ),
       child: SafeArea(
         child: Container(
@@ -97,16 +116,15 @@ class _HalamanLoginState extends State<HalamanLogin> {
                     ),
                     const SizedBox(height: 30),
 
-                    // Menggunakan Opacity untuk Card widget
                     Opacity(
-                      opacity: 0.8, // Mengatur opacity menjadi 80%
+                      opacity: 0.8, 
                       child: Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 10,
                         margin: const EdgeInsets.symmetric(horizontal: 16),
-                        color: const Color.fromARGB(255, 95, 185, 201), // Warna latar belakang card
+                        color: const Color.fromARGB(255, 95, 185, 201), 
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(

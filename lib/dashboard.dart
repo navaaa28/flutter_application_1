@@ -25,6 +25,25 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
+  // Metode _informasi dipindahkan ke dalam kelas _DashboardPageState
+  void _informasi() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('INFORMASI!'),
+        content: const Text('Aplikasi Ini Dibuat Oleh Dany Faturrochman-22552011080'),
+        actions: <Widget>[
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
@@ -51,15 +70,18 @@ class _DashboardPageState extends State<DashboardPage> {
             return _HomeTab(
               username: widget.username,
               attendanceLogs: attendanceLogs,
+              informasi: _informasi,
             );
           case 1:
             return _MenuTab(
               addAttendanceLog: addAttendanceLog,
+              informasi: _informasi,
             );
           case 2:
             return _ProfileTab(
               username: widget.username,
               password: widget.password,
+              informasi: _informasi,
             );
           default:
             return Container();
@@ -72,17 +94,24 @@ class _DashboardPageState extends State<DashboardPage> {
 class _HomeTab extends StatelessWidget {
   final String username;
   final List<String> attendanceLogs;
+  final VoidCallback informasi;
 
   const _HomeTab({
     required this.username,
     required this.attendanceLogs,
+    required this.informasi,
   });
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Halaman Utama'),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Halaman Utama'),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: informasi,
+          child: const Icon(CupertinoIcons.info_circle, size: 28),
+        ),
       ),
       child: SafeArea(
         child: Container(
@@ -136,20 +165,29 @@ class _HomeTab extends StatelessWidget {
 
 class _MenuTab extends StatelessWidget {
   final Function(String) addAttendanceLog;
+  final VoidCallback informasi;
 
-  const _MenuTab({required this.addAttendanceLog});
+  const _MenuTab({
+    required this.addAttendanceLog,
+    required this.informasi,
+  });
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Menu'),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Halaman Menu'),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: informasi,
+          child: const Icon(CupertinoIcons.info_circle, size: 28),
+        ),
       ),
       child: SafeArea(
         child: Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('images/dm.jpeg'), // Gambar background Menu
+              image: AssetImage('images/dm.jpeg'),
               fit: BoxFit.cover,
             ),
           ),
@@ -238,23 +276,30 @@ class _MenuTab extends StatelessWidget {
 class _ProfileTab extends StatelessWidget {
   final String username;
   final String password;
+  final VoidCallback informasi;
 
   const _ProfileTab({
     required this.username,
     required this.password,
+    required this.informasi,
   });
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Profil'),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text('Halaman Profil'),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: informasi,
+          child: const Icon(CupertinoIcons.info_circle, size: 28),
+        ),
       ),
       child: SafeArea(
         child: Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('images/dp.jpeg'), // Gambar background Profile
+              image: AssetImage('images/dp.jpeg'),
               fit: BoxFit.cover,
             ),
           ),
@@ -262,16 +307,16 @@ class _ProfileTab extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             children: [
               const SizedBox(height: 60),
-                    Center(
-                      child: ClipOval(
-                        child: Image.asset(
-                          'images/logo.png',
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
+              Center(
+                child: ClipOval(
+                  child: Image.asset(
+                    'images/logo.png',
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
               const SizedBox(height: 16),
               Text(
                 username,
@@ -279,6 +324,7 @@ class _ProfileTab extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 254, 254, 255),
                 ),
               ),
               const SizedBox(height: 10),
@@ -286,8 +332,8 @@ class _ProfileTab extends StatelessWidget {
                 'Password: $password',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 16,
-                  color: CupertinoColors.systemGrey,
+                  fontSize: 20,
+                  color: Color.fromARGB(255, 254, 254, 255),
                 ),
               ),
               const SizedBox(height: 30),

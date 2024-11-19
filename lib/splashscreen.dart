@@ -28,7 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
       child: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('images/foto.png'), // Gambar splash
+            image: AssetImage('images/splashscreen.jpeg'), // Gambar splash
             fit: BoxFit.cover,
           ),
         ),
@@ -53,12 +53,19 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
               SizedBox(height: 10),
-              // Subtitle
               Text(
                 'Solusi Absensi Anda',
                 style: TextStyle(
                   fontSize: 18,
                   color: CupertinoColors.systemGrey,
+                ),
+              ),
+              SizedBox(height: 20,),
+              Text(
+                'Yang Jadi Wallpaper Pacar Saya Pak',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Color.fromARGB(255, 84, 84, 107),
                 ),
               ),
             ],
