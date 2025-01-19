@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'dart:async';
-import 'halaman_login.dart'; // Import file HalamanLogin
+import 'HalamanDepan/halaman_login.dart'; 
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,7 +17,7 @@ class _SplashScreenState extends State<SplashScreen> {
       // Navigasi ke halaman login setelah 3 detik
       Navigator.pushReplacement(
         context,
-        CupertinoPageRoute(builder: (context) => const HalamanLogin()),
+        CupertinoPageRoute(builder: (context) => const HalamanLogin(username: 'name',)),
       );
     });
   }
