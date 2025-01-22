@@ -27,10 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return CupertinoPageScaffold(
       child: Container(
         decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('images/splashscreen.jpeg'), // Gambar splash
-            fit: BoxFit.cover,
-          ),
+        color: const Color.fromARGB(255, 76, 178, 229),
         ),
         child: const Center(
           child: Column(

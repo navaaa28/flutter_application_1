@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../dashboard.dart';
+
 
 class HalamanRegister extends StatefulWidget {
   const HalamanRegister({super.key});

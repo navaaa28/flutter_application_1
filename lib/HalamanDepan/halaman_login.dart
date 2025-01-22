@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/HalamanDepan/halaman_register.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../dashboard.dart';
+import '../HalamanTengah/dashboard_page.dart';
 
 class HalamanLogin extends StatefulWidget {
   const HalamanLogin({super.key, required String username});
