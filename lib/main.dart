@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_application_1/HalamanDepan/halaman_login.dart';
 import 'package:flutter_application_1/HalamanTengah/dashboard_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'splashscreen.dart'; // Import file splash_screen.dart

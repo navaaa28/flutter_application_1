@@ -31,7 +31,7 @@ class _DashboardPageState extends State<DashboardPage> {
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('INFORMASI!'),
-        content: const Text('Aplikasi Ini Dibuat Untuk di buang'),
+        content: const Text('Aplikasi Ini Dibuat Untuk JAWA'),
         actions: [
           CupertinoDialogAction(
             child: const Text('OK'),
@@ -75,7 +75,7 @@ class _DashboardPageState extends State<DashboardPage> {
           case 1:
             return MenuTab(
               addAttendanceLog: addAttendanceLog,
-              informasi: _informasi,
+              informasi: _informasi, username: '',
             );
           case 2:
             return ProfileTab(

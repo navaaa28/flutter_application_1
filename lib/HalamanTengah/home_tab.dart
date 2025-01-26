@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; 
-
+import 'package:intl/intl.dart';
 
 class HomeTab extends StatelessWidget {
   final String username;
@@ -14,130 +13,181 @@ class HomeTab extends StatelessWidget {
     required this.informasi,
   });
 
-  void _showAnnouncementPopup(BuildContext context) {
-    showCupertinoDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return CupertinoAlertDialog(
-          title: Row(
-            children: const [
-              Icon(CupertinoIcons.speaker_2, size: 28),
-              SizedBox(width: 8),
-              Text('Pengumuman Hari Ini'),
-            ],
-          ),
-          content: const Text(
-            'Rapat evaluasi akan diadakan besok pukul 10:00 di ruang meeting.',
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            CupertinoDialogAction(
-              isDefaultAction: true,
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('Halaman Utama'),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: informasi,
-          child: const Icon(CupertinoIcons.info_circle, size: 28),
-        ),
+        middle: const Text('Dashboard'),
       ),
       child: SafeArea(
-        child: Container(
-                    color: const Color.fromARGB(255, 76, 178, 229).withOpacity(0.4),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                'Welcome, $username!',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: CupertinoColors.black,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    Card(
-                      color: const Color.fromARGB(255, 200, 230, 255),
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        title: const Text('Pengumuman Atasan',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        leading: const Icon(CupertinoIcons.speaker_2),
-                        onTap: () => _showAnnouncementPopup(context),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ...attendanceLogs.map((log) => Card(
-                          color: const Color.fromARGB(255, 76, 178, 229).withOpacity(0.4),
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Text(
-                              log,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: CupertinoColors.black,
-                              ),
-                            ),
+        child: Column(
+          children: [
+            // Header Section
+            Container(
+              color: const Color.fromARGB(255, 76, 178, 229),
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: AssetImage('images/logo.png'),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          username,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
-                        )),
-                    Card(
-                      color: const Color.fromARGB(255, 200, 230, 255),
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        title: const Text('Kalender Kerja',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        leading: const Icon(CupertinoIcons.calendar_today),
-                        onTap: () {},
-                      ),
+                        ),
+                        Text(
+                          username,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
                     ),
-                    Card(
-                      color: const Color.fromARGB(255, 200, 230, 255),
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        title: const Text('Jadwal Absen Hari Ini',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        subtitle: const Text('Jam: 08:00 - 17:00'),
-                        leading: const Icon(CupertinoIcons.calendar),
-                        onTap: () {},
-                      ),
-                    ),
-                    Card(
-                      color: const Color.fromARGB(255, 200, 230, 255),
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        title: const Text('Informasi Lembur',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        subtitle: const Text(
-                            'Nama: John Doe, Jam Lembur: 18:00 - 20:00\nNama: Jane Smith, Jam Lembur: 19:00 - 21:00'),
-                        leading: const Icon(CupertinoIcons.time),
-                        onTap: () {},
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+
+            // Schedule and Check In/Out Section
+            Container(
+              color: const Color.fromARGB(255, 200, 230, 255),
+              padding: const EdgeInsets.all(16.0),
+              margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Masuk',
+                          style: TextStyle(color: Colors.black54)),
+                      Text(
+                        username,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Selesai',
+                          style: TextStyle(color: Colors.black54)),
+                      Text(
+                        username,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Total',
+                          style: TextStyle(color: Colors.black54)),
+                      Text(
+                        username,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Grid Menu Section
+            Expanded(
+              child: GridView.count(
+                padding: const EdgeInsets.all(16.0),
+                crossAxisCount: 3,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                children: [
+                  _buildMenuItem(CupertinoIcons.calendar, 'Kalender'),
+                  _buildMenuItem(CupertinoIcons.square_list, 'Aktivitas'),
+                  _buildMenuItem(
+                      CupertinoIcons.person_crop_circle_badge_minus, 'Resign'),
+                  _buildMenuItem(CupertinoIcons.clock, 'Lembur'),
+                  _buildMenuItem(CupertinoIcons.doc, 'Izin / Cuti'),
+                  _buildMenuItem(CupertinoIcons.money_dollar_circle, 'Gaji'),
+                ],
+              ),
+            ),
+
+            // Attendance Log Section
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Kehadiran',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(16.0),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 200, 230, 255),
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: const Text(
+                      'isinya ngambil data dari absen masuk',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildMenuItem(IconData icon, String label) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemGrey
+            .withOpacity(0.1), // Menambahkan latar belakang abu-abu
+        border: Border.all(color: CupertinoColors.systemGrey, width: 1),
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 28, color: CupertinoColors.activeBlue),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 14),
+          ),
+        ],
       ),
     );
   }
