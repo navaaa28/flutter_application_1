@@ -1,86 +1,70 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/HalamanAwal/halaman_register.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../HalamanTengah/dashboard_page.dart';
 
+class HalamanLogin extends StatefulWidget {
+  const HalamanLogin({super.key, required this.username});
 
-class HalamanRegister extends StatefulWidget {
-  const HalamanRegister({super.key});
+  final String username;
 
   @override
-  _HalamanRegisterState createState() => _HalamanRegisterState();
+  _HalamanLoginState createState() => _HalamanLoginState();
 }
 
-class _HalamanRegisterState extends State<HalamanRegister> {
-  final _nameController = TextEditingController();
+class _HalamanLoginState extends State<HalamanLogin> {
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final FocusNode _emailFocusNode = FocusNode();
-  final FocusNode _nameFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
 
- void _register() async {
-  String email = _emailController.text;
-  String password = _passwordController.text;
-  String name = _nameController.text;
-  String phone = _phoneController.text;
-
-  try {
-    final response = await Supabase.instance.client.auth.signUp(
-      email: email,
-      password: password,
-    );
-
-    if (response.user != null) {
-      final userId = response.user?.id;
-
-      // Insert additional user details (name, phone) into the 'users' table
-      final insertResponse = await Supabase.instance.client
-          .from('users')
-          .upsert([
-        {
-          'id': userId, // Store the Supabase auth user ID
-          'email': email,
-          'name': name,
-          'phone': phone,
-        }
-      ]);
-
-      if (insertResponse != null && insertResponse.error != null) {
-        _showErrorDialog('Failed to save user details: ${insertResponse.error!.message}');
-      } else {
-        
-        _showSuccessDialog();
-      }
-    } else {
-      _showErrorDialog('Registration failed. Please check your details.');
-    }
-  } catch (e) {
-    _showErrorDialog('An error occurred: ${e.toString()}');
+  @override
+  void initState() {
+    super.initState();
   }
-}
 
-void _showSuccessDialog() {
-  showCupertinoDialog(
-    context: context,
-    builder: (context) => CupertinoAlertDialog(
-      title: const Text('Success'),
-      content: const Text('Registration Berhasil\n"Silahkan Cek Email untuk Konfirmasi Emailnya!'),
-      actions: <Widget>[
-        CupertinoDialogAction(
-          child: const Text('OK'),
-          onPressed: () {
-            Navigator.pop(context); // Close the dialog
-            Navigator.pop(context); // Navigate back to login page
-          },
-        ),
-      ],
-    ),
-  );
-}
+  void _login() async {
+    String email = _emailController.text;
+    String password = _passwordController.text;
 
+    try {
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
 
+      if (response.user != null) {
+        final userId = response.user?.id;
+
+        // Mengambil display_name dari tabel users berdasarkan user ID
+        final userResponse = await Supabase.instance.client
+            .from('users')
+            .select()
+            .eq('id', userId!)
+            .single();
+
+        String? displayName = userResponse['display_name'];
+        if (displayName != null) {
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => DashboardPage(
+                username: displayName, password: '', // Menampilkan display_name di DashboardPage
+              ),
+            ),
+          );
+        } else {
+          _showErrorDialog('Display name tidak ditemukan.');
+        }
+      } else {
+        _showErrorDialog('Login gagal. Periksa email dan password Anda.');
+      }
+    } catch (e) {
+      _showErrorDialog('Terjadi kesalahan: ${e.toString()}');
+    }
+  }
 
   void _showErrorDialog(String message) {
     showCupertinoDialog(
@@ -110,7 +94,7 @@ void _showSuccessDialog() {
             painter: CurvedPainter(),
           ),
           SafeArea(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -128,7 +112,7 @@ void _showSuccessDialog() {
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'Create an Account',
+                    'Let\'s Get Started',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -138,21 +122,9 @@ void _showSuccessDialog() {
                   ),
                   const SizedBox(height: 20),
                   _buildTextField(
-                    controller: _nameController,
-                    focusNode: _nameFocusNode,
-                    placeholder: 'Full Name',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
                     controller: _emailController,
                     focusNode: _emailFocusNode,
-                    placeholder: 'Email',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _phoneController,
-                    focusNode: FocusNode(),
-                    placeholder: 'Phone Number',
+                    placeholder: 'Email or Mobile',
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
@@ -177,23 +149,34 @@ void _showSuccessDialog() {
                   ),
                   const SizedBox(height: 20),
                   CupertinoButton(
-                    onPressed: _register,
-                    color: Colors.blue,
+                    onPressed: _login,
+                    color: Color.fromRGBO(33, 150, 243, 1),
                     borderRadius: BorderRadius.circular(10),
-                    child: const Text('Register'),
+                    child: const Text(
+                      'Login',
+                      style: TextStyle(
+                        color: Colors.white, // Ganti dengan warna teks yang Anda inginkan
+                        fontWeight: FontWeight.bold, // Tambahkan gaya teks (opsional)
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text('Already have an account?'),
+                      const Text('Don\'t have an account?'),
                       CupertinoButton(
                         onPressed: () {
-                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) => const HalamanRegister(),
+                            ),
+                          );
                         },
                         child: const Text(
-                          'Login',
-                          style: TextStyle(color: Colors.blue),
+                          'Sign Up',
+                          style: TextStyle(  color: Color.fromRGBO(33, 150, 243, 1)),
                         ),
                       ),
                     ],
@@ -241,9 +224,7 @@ void _showSuccessDialog() {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _passwordController.dispose();
     _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
@@ -260,8 +241,7 @@ class CurvedPainter extends CustomPainter {
 
     Path path = Path();
     path.lineTo(0, size.height);
-    path.quadraticBezierTo(
-        size.width / 2, size.height + 100, size.width, size.height);
+    path.quadraticBezierTo(size.width / 2, size.height + 100, size.width, size.height);
     path.lineTo(size.width, 0);
     path.close();
 

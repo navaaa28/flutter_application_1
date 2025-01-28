@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/HalamanDepan/halaman_login.dart';
+import 'package:flutter_application_1/HalamanAwal/halaman_login.dart';
 
 class ProfileTab extends StatelessWidget {
   final String username;
@@ -95,8 +95,6 @@ class ProfileTab extends StatelessWidget {
                                 child: const Text('Simpan'),
                                 onPressed: () {
                                   // Simpan perubahan nama dan email
-                                  String newName = nameController.text;
-                                  String newEmail = emailController.text;
 
                                   // Validasi input jika perlu, lalu simpan
                                   Navigator.pop(context);
@@ -153,7 +151,6 @@ class ProfileTab extends StatelessWidget {
                               CupertinoDialogAction(
                                 child: const Text('Simpan'),
                                 onPressed: () {
-                                  String newPassword = passwordController.text;
                                   Navigator.pop(context);
                                   showCupertinoDialog(
                                     context: context,

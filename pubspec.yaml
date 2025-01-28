@@ -33,7 +33,9 @@ dependencies:
 
   supabase_flutter: ^2.8.3
   table_calendar: ^3.0.6
-
+  geolocator: ^10.0.1
+  image_picker: ^0.8.7+3
+  geocoding: ^2.0.5
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -94,10 +96,6 @@ flutter:
   # see https://flutter.dev/to/font-from-package
   assets:
     - images/logo.png
-    - images/foto.png
-    - images/bw.jpeg
-    - images/dh.jpeg
-    - images/dp.jpeg
-    - images/dm.jpeg
     - images/splashscreen.jpeg
+    - images/WP.jpg
 

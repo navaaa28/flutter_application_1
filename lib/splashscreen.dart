@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'dart:async';
-import 'HalamanDepan/halaman_login.dart'; 
+import 'HalamanAwal/halaman_login.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,7 +18,11 @@ class _SplashScreenState extends State<SplashScreen> {
       // Navigasi ke halaman login setelah 3 detik
       Navigator.pushReplacement(
         context,
-        CupertinoPageRoute(builder: (context) => const HalamanLogin(username: 'name',)),
+        CupertinoPageRoute(
+          builder: (context) => const HalamanLogin(
+            username: 'name',
+          ),
+        ),
       );
     });
   }
@@ -27,44 +32,48 @@ class _SplashScreenState extends State<SplashScreen> {
     return CupertinoPageScaffold(
       child: Container(
         decoration: const BoxDecoration(
-        color: const Color.fromARGB(255, 76, 178, 229),
+          image: DecorationImage(
+            image: AssetImage('images/WP.jpg'), // Ganti dengan path gambar latar belakang Anda
+            fit: BoxFit.cover, // Agar gambar memenuhi seluruh layar
+          ),
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo aplikasi
-              Image(
-                image: AssetImage('images/logo.png'),
-                width: 150,
-                height: 150,
+              // Ilustrasi gambar
+              const Image(
+                image: AssetImage('images/logo.png'), // Ganti dengan ilustrasi sesuai gambar
+                width: 200,
+                height: 200,
               ),
-              SizedBox(height: 20),
-              // Nama aplikasi
-              Text(
-                'Hadirrr',
+              const SizedBox(height: 30),
+              // Teks besar
+              const Text(
+                'FUTURE OF',
                 style: TextStyle(
-                  fontSize: 32,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  color: CupertinoColors.white,
+                  color: Colors.white,
                 ),
               ),
-              SizedBox(height: 10),
-              Text(
-                'Solusi Absensi Anda',
+              const Text(
+                'VIRTUAL',
                 style: TextStyle(
-                  fontSize: 18,
-                  color: CupertinoColors.systemGrey,
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 0, 0, 0),
                 ),
               ),
-              SizedBox(height: 20,),
-              Text(
-                'Yang Jadi Wallpaper Pacar Saya Pak',
+              const Text(
+                'PRESENTYTY',
                 style: TextStyle(
-                  fontSize: 20,
-                  color: Color.fromARGB(255, 84, 84, 107),
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 0, 0, 0),
                 ),
               ),
+              const SizedBox(height: 50),
             ],
           ),
         ),

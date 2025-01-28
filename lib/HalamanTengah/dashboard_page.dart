@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
-import 'home_tab.dart';
-import 'menu_tab.dart';
+import '../HalamanHome/home_tab.dart';
+import '../HalamanMenu/menu_tab.dart';
 import 'profile_tab.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -69,13 +69,12 @@ class _DashboardPageState extends State<DashboardPage> {
           case 0:
             return HomeTab(
               username: widget.username,
-              attendanceLogs: attendanceLogs,
               informasi: _informasi,
             );
           case 1:
             return MenuTab(
-              addAttendanceLog: addAttendanceLog,
-              informasi: _informasi, username: '',
+              informasi: _informasi,
+              username: widget.username,
             );
           case 2:
             return ProfileTab(
