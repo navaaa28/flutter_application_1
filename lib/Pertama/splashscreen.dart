@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'HalamanAwal/halaman_login.dart';
+import '../HalamanAwal/halaman_login.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,13 +15,23 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 3), () {
-      // Navigasi ke halaman login setelah 3 detik
+      // Navigasi ke halaman login dengan transisi fade
       Navigator.pushReplacement(
         context,
-        CupertinoPageRoute(
-          builder: (context) => const HalamanLogin(
-            username: 'name',
-          ),
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return const HalamanLogin(username: 'name');
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            const curve = Curves.easeInOut;
+            
+            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var offsetAnimation = animation.drive(tween);
+
+            return SlideTransition(position: offsetAnimation, child: child);
+          },
         ),
       );
     });

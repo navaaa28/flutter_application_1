@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/HalamanMenu/absensikeluar_page.dart';
 import 'package:flutter_application_1/HalamanMenu/izincuti_page.dart';
+import 'package:flutter_application_1/HalamanMenu/lembur_page.dart';
 import 'absensimasuk_page.dart';
 
 class MenuTab extends StatelessWidget {
@@ -100,7 +101,13 @@ class MenuTab extends StatelessWidget {
                           ),
                         );
                       } else if (index == 2) {
-                        // Navigasi ke halaman Lembur
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (context) =>
+                                LemburPage(),
+                          ),
+                        );
                       } else if (index == 3) {
                         Navigator.push(
                           context,

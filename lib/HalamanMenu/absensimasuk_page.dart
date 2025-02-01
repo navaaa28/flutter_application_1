@@ -76,6 +76,11 @@ Future<void> _submitAttendance(BuildContext context) async {
   final location = locationController.text;
   final photoPath = _photoFile?.path;
 
+  // Menentukan status absen
+  String absenStatus = (now.hour >= 8) ? 'Terlambat' : 'Tepat Waktu'; // Status untuk terlambat
+  String jenisAbsen = 'masuk'; // Jenis absen tetap 'masuk'
+
+  // Cek jika lokasi atau foto belum diambil
   if (location.isEmpty || photoPath == null) {
     showCupertinoDialog(
       context: context,
@@ -153,7 +158,7 @@ Future<void> _submitAttendance(BuildContext context) async {
           File(photoPath).readAsBytesSync(), // File data
         );
 
-    // Simpan data ke tabel `absensi`
+    // Simpan data ke tabel `absensi` dengan jenis absensi 'masuk' dan status 'Terlambat' jika sudah lewat jam 8
     await Supabase.instance.client
         .from('absensi') // Table name
         .insert({
@@ -161,7 +166,8 @@ Future<void> _submitAttendance(BuildContext context) async {
       'tanggal': formattedDate,
       'lokasi': location,
       'foto_url': photoUrl,
-      'jenis_absen': 'masuk',
+      'jenis_absen': jenisAbsen, // Tetap 'masuk'
+      'status': absenStatus, // Status menyimpan 'Terlambat' jika jam lebih dari 8
     });
 
     // Tampilkan dialog sukses
@@ -169,7 +175,7 @@ Future<void> _submitAttendance(BuildContext context) async {
       context: context,
       builder: (context) => CupertinoAlertDialog(
         title: const Text('Berhasil'),
-        content: Text('Absen masuk berhasil disimpan pada $formattedDate.'),
+        content: Text('Absen berhasil disimpan pada $formattedDate dengan status "$absenStatus".'),
         actions: [
           CupertinoDialogAction(
             child: const Text('OK'),
@@ -195,6 +201,7 @@ Future<void> _submitAttendance(BuildContext context) async {
     );
   }
 }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(

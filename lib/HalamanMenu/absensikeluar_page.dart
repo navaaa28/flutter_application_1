@@ -150,7 +150,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
       final photoUrl = await Supabase.instance.client.storage
           .from('absensi-photos') // Bucket name
           .uploadBinary(
-            fileName, // File name dengan struktur folder
+            fileName, // File name dengan struktur f  older
             File(photoPath).readAsBytesSync(), // File data
           );
 

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import '../HalamanHome/home_tab.dart';
 import '../HalamanMenu/menu_tab.dart';
-import 'profile_tab.dart';
+import '../HalamanProfil/profile_tab.dart';
 
 class DashboardPage extends StatefulWidget {
   final String username;

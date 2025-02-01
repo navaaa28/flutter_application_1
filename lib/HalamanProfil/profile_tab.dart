@@ -1,6 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/HalamanAwal/halaman_login.dart';
+import 'package:flutter_application_1/HalamanProfil/hubungikami.dart';
+import 'package:flutter_application_1/HalamanProfil/laporanmasalah.dart';
+import 'package:flutter_application_1/HalamanProfil/pengaturan_privasi.dart';
+import 'package:flutter_application_1/HalamanProfil/pusatbantuan.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:io';
+import 'gaji.dart';  // Import halaman gaji
 
 class ProfileTab extends StatelessWidget {
   final String username;
@@ -134,6 +142,10 @@ class ProfileTab extends StatelessWidget {
                               children: [
                                 const SizedBox(height: 10),
                                 CupertinoTextField(
+                                  obscureText: true,
+                                  placeholder: 'Kata Sandi Lama',
+                                ),
+                                CupertinoTextField(
                                   controller: passwordController,
                                   obscureText: true,
                                   placeholder: 'Kata Sandi Baru',
@@ -175,9 +187,30 @@ class ProfileTab extends StatelessWidget {
                   ),
                   const Divider(),
                   CupertinoListTile(
+                    leading: const Icon(CupertinoIcons.money_dollar),
+                    title: const Text('Gaji'),
+                    onTap: () {
+                        // Navigasi ke halaman GajiPage
+                        Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => GajiPage(
+                            selectedSalary: 'Rp 5.000.000',
+                            salaryDate: DateTime(2025, 12, 28), // Tanggal gaji diterima
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const Divider(),
+                  CupertinoListTile(
                     leading: const Icon(CupertinoIcons.eye),
                     title: const Text('Pengaturan Privasi'),
                     onTap: () {
+                    Navigator.push(
+                    context,
+                    CupertinoPageRoute(builder: (context) => const PengaturanPrivasiPage()),
+                  );
                       // Aksi untuk mengatur privasi
                     },
                   ),
@@ -218,7 +251,13 @@ class ProfileTab extends StatelessWidget {
                     leading: const Icon(CupertinoIcons.question_circle),
                     title: const Text('Pusat Bantuan'),
                     onTap: () {
-                      // Aksi untuk pusat bantuan
+                      // Navigasi ke halaman PusatBantuanPage
+                      Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => const PusatBantuanPage(),
+                        ),
+                      );
                     },
                   ),
                   const Divider(),
@@ -226,7 +265,10 @@ class ProfileTab extends StatelessWidget {
                     leading: const Icon(CupertinoIcons.phone),
                     title: const Text('Hubungi Kami'),
                     onTap: () {
-                      // Aksi untuk menghubungi layanan pelanggan
+                    Navigator.push(
+                    context,
+                    CupertinoPageRoute(builder: (context) => const HubungiKamiPage()),
+                  );// Aksi untuk menghubungi layanan pelanggan
                     },
                   ),
                   const Divider(),
@@ -234,6 +276,11 @@ class ProfileTab extends StatelessWidget {
                     leading: const Icon(CupertinoIcons.exclamationmark_triangle),
                     title: const Text('Laporan Masalah/Bug'),
                     onTap: () {
+
+                      Navigator.push(
+                    context,
+                    CupertinoPageRoute(builder: (context) => const LaporanMasalahPage()),
+                  );
                       // Aksi untuk melaporkan masalah atau bug
                     },
                   ),
@@ -320,7 +367,7 @@ class ProfileTab extends StatelessWidget {
                       );
                     },
                   ),
-                                    const Divider(),
+                  const Divider(),
                   CupertinoListTile(
                     leading: const Icon(CupertinoIcons.globe),
                     title: const Text('Bahasa'),
@@ -408,17 +455,69 @@ class ProfileTab extends StatelessWidget {
                       // Aksi untuk menghapus akun
                     },
                   ),
-                  const Divider(),
-                  CupertinoButton.filled(
-                    onPressed: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => HalamanLogin(username: '',)),
-                        (Route<dynamic> route) => false,
-                      );
-                    },
-                    child: const Text('Keluar'),
-                  ),
+                  CupertinoListTile(
+                      leading: const Icon(CupertinoIcons.square_arrow_right),
+                      title: const Text('Keluar'),
+                      onTap: () {
+                        showCupertinoDialog(
+                          context: context,
+                          builder: (context) => CupertinoAlertDialog(
+                            title: const Text('Keluar'),
+                            content: const Text('Apakah Anda yakin ingin keluar?'),
+                            actions: [
+                              CupertinoDialogAction(
+                                onPressed: () {
+                                  Navigator.pop(context); // Tutup dialog tanpa melakukan apa-apa
+                                },
+                                child: const Text('Batal'),
+                              ),
+                              CupertinoDialogAction(
+                                onPressed: () async {
+                                  // Tutup dialog konfirmasi sebelum melakukan signOut
+                                  Navigator.pop(context);
+
+                                  try {
+                                    // Tunggu hingga signOut selesai
+                                    await Supabase.instance.client.auth.signOut();
+
+                                    // Setelah keluar berhasil, navigasi ke halaman login
+                                    if (context.mounted) {
+                                      Navigator.pushReplacement(
+                                        context,
+                                        CupertinoPageRoute(
+                                          builder: (context) => const HalamanLogin(username: ''),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      // Tangani error jika terjadi
+                                      showCupertinoDialog(
+                                        context: context,
+                                        builder: (context) => CupertinoAlertDialog(
+                                          title: const Text('Error'),
+                                          content: Text('Terjadi kesalahan: ${e.toString()}'),
+                                          actions: [
+                                            CupertinoDialogAction(
+                                              onPressed: () {
+                                                Navigator.pop(context); // Tutup dialog error
+                                              },
+                                              child: const Text('OK'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: const Text('Keluar'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+
                 ],
               ),
             ),

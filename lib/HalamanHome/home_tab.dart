@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/HalamanHome/kalender_page.dart';
 import 'package:intl/intl.dart'; // Untuk format tanggal
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_application_1/HalamanHome/activity_page.dart'; // Import ActivityPage
+import 'package:flutter_application_1/HalamanMenu/lembur_page.dart'; // Import LemburPage
 
 class HomeTab extends StatefulWidget {
   final String username;
@@ -21,12 +23,38 @@ class HomeTab extends StatefulWidget {
 class _HomeTabState extends State<HomeTab> {
   String? checkInTime;
   String? checkOutTime;
+  String? profileImageUrl;
 
   @override
   void initState() {
     super.initState();
+    fetchUserProfile();
     fetchAttendanceData();
     setupRealtimeListener();
+  }
+
+  Future<void> fetchUserProfile() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      print('User not logged in');
+      return;
+    }
+
+    try {
+      final response = await supabase
+          .from('users')
+          .select('profile_url')
+          .eq('id', user.id)
+          .single();
+
+      setState(() {
+        profileImageUrl = response['profile_url'];
+      });
+    } catch (e) {
+      print('Error fetching profile image: $e');
+    }
   }
 
   Future<void> fetchAttendanceData() async {
@@ -86,10 +114,10 @@ class _HomeTabState extends State<HomeTab> {
     supabase
         .from('absensi')
         .stream(primaryKey: ['id'])
-        .eq('user_id', userId) // userId sudah dipastikan non-null
+        .eq('user_id', userId)
         .listen((event) {
-      print('Realtime event: $event'); // Debugging
-      fetchAttendanceData(); // Fetch data ulang saat ada perubahan
+      print('Realtime event: $event');
+      fetchAttendanceData();
     });
   }
 
@@ -97,16 +125,6 @@ class _HomeTabState extends State<HomeTab> {
     if (dateString == null) return 'Belum Absen';
     final date = DateTime.parse(dateString);
     return DateFormat('HH:mm, dd MMM yyyy').format(date);
-  }
-
-  // Navigasi ke halaman aktivitas
-  void _showActivityPage() {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => ActivityPage(),
-      ),
-    );
   }
 
   @override
@@ -126,7 +144,9 @@ class _HomeTabState extends State<HomeTab> {
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundImage: AssetImage('images/logo.png'),
+                    backgroundImage: profileImageUrl != null
+                        ? NetworkImage(profileImageUrl!)
+                        : AssetImage('images/logo.png') as ImageProvider,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -147,8 +167,6 @@ class _HomeTabState extends State<HomeTab> {
                 ],
               ),
             ),
-
-            // Schedule and Check In/Out Section
             Container(
               color: const Color.fromARGB(255, 200, 230, 255),
               padding: const EdgeInsets.all(16.0),
@@ -196,13 +214,14 @@ class _HomeTabState extends State<HomeTab> {
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
                 children: [
-                  _buildMenuItem(CupertinoIcons.calendar, 'Kalender'),
+                  _buildMenuItem(CupertinoIcons.calendar, 'Kalender', onTap: _showKalenderPage),
+
                   _buildMenuItem(CupertinoIcons.square_list, 'Aktivitas', onTap: _showActivityPage),
-                  _buildMenuItem(
-                      CupertinoIcons.person_crop_circle_badge_minus, 'Resign'),
-                  _buildMenuItem(CupertinoIcons.clock, 'Lembur'),
+
+                  _buildMenuItem(CupertinoIcons.clock, 'Lembur', onTap: _showLemburPage),
+
                   _buildMenuItem(CupertinoIcons.doc, 'Izin / Cuti'),
-                  _buildMenuItem(CupertinoIcons.money_dollar_circle, 'Gaji'),
+                  
                 ],
               ),
             ),
@@ -211,6 +230,34 @@ class _HomeTabState extends State<HomeTab> {
       ),
     );
   }
+
+  
+
+  void _showActivityPage() {
+
+    Navigator.push(
+      context,
+      CupertinoPageRoute(
+      builder: (context) =>
+      ActivityPage(),
+      ),
+    );
+    }
+  
+
+  void _showKalenderPage() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => KalenderPage(),
+    ),
+  );
+}
+  void _showLemburPage() {
+  }
+  }
+
+
 
   Widget _buildMenuItem(IconData icon, String label, {VoidCallback? onTap}) {
     return GestureDetector(
@@ -236,5 +283,5 @@ class _HomeTabState extends State<HomeTab> {
       ),
     );
   }
-}
+
   
