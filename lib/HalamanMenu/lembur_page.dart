@@ -4,9 +4,16 @@ import 'package:intl/intl.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://YOUR_SUPABASE_URL',
+    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+  );
+
   runApp(
-    MaterialApp(
+    CupertinoApp(
       home: LemburPage(),
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
@@ -14,8 +21,8 @@ void main() {
         GlobalWidgetsLocalizations.delegate,
       ],
       supportedLocales: [
-        Locale('id', 'ID'), // Menambahkan dukungan untuk bahasa Indonesia
-        Locale('en', 'US'), // Bahasa Inggris sebagai fallback
+        Locale('id', 'ID'), // Bahasa Indonesia
+        Locale('en', 'US'), // Bahasa Inggris
       ],
     ),
   );
@@ -53,6 +60,7 @@ class _LemburPageState extends State<LemburPage> {
                 child: CupertinoDatePicker(
                   mode: CupertinoDatePickerMode.dateAndTime,
                   initialDateTime: selectedDate,
+                  use24hFormat: true,
                   onDateTimeChanged: (DateTime dateTime) {
                     selectedDate = dateTime;
                   },
@@ -80,47 +88,60 @@ class _LemburPageState extends State<LemburPage> {
   }
 
   Future<void> _saveOvertime() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    if (_startTime == null || _endTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Waktu mulai dan selesai harus diisi.')),
-      );
-      return;
-    }
+  if (_startTime == null || _endTime == null) {
+    _showMessage('Waktu mulai dan selesai harus diisi.');
+    return;
+  }
 
-    final supabase = Supabase.instance.client;
-    final user = supabase.auth.currentUser;
+  if (_endTime!.isBefore(_startTime!)) {
+    _showMessage('Waktu selesai tidak boleh lebih awal dari waktu mulai.');
+    return;
+  }
 
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pengguna tidak ditemukan.')),
-      );
-      return;
-    }
+  final supabase = Supabase.instance.client;
+  final user = supabase.auth.currentUser;
 
-    try {
-      final response = await supabase.from('lembur').insert({
-        'user_id': user.id,
-        'waktu_mulai': _startTime!.toIso8601String(),
-        'waktu_selesai': _endTime!.toIso8601String(),
-        'durasi': _endTime!.difference(_startTime!).inMinutes,
-        'catatan': _notesController.text,
-      });
+  if (user == null) {
+    _showMessage('Pengguna tidak ditemukan.');
+    return;
+  }
 
-      if (response.error == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lembur berhasil disimpan.')),
-        );
-        Navigator.pop(context);
-      } else {
-        throw response.error!;
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menyimpan lembur: $e')),
-      );
-    }
+  try {
+    await supabase.from('lembur').insert({
+      'user_id': user.id,
+      'waktu_mulai': _startTime!.toIso8601String(),
+      'waktu_selesai': _endTime!.toIso8601String(),
+      'durasi': _endTime!.difference(_startTime!).inMinutes,
+      'catatan': _notesController.text,
+    });
+
+    print('Lembur berhasil disimpan.'); // Debugging
+    _showMessage('Lembur berhasil disimpan.');
+    
+    // Jangan langsung pop, biarkan user melihat pesan
+    // Navigator.pop(context); // Hapus atau pindahkan setelah delay
+  } catch (e) {
+    print('Gagal menyimpan lembur: ${e.toString()}'); // Debugging
+    _showMessage('Gagal menyimpan lembur: ${e.toString()}');
+  }
+}
+
+
+  void _showMessage(String message) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        content: Text(message),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import '../HalamanHome/home_tab.dart';
 import '../HalamanMenu/menu_tab.dart';
 import '../HalamanProfil/profile_tab.dart';
@@ -46,23 +47,33 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    FloatingActionButton(
+      onPressed: () {
+        // Implement action for FAB
+      },
+      child: Icon(Icons.add),
+    );
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
-        backgroundColor: const Color.fromARGB(255, 131, 199, 248),
+        backgroundColor: Color.fromARGB(255, 255, 255, 255),
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.home),
-            label: 'Utama',
+            icon: Icon(Icons.home),
+            label: 'Home', // Ganti label sesuai keinginan
           ),
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.square_grid_2x2),
-            label: 'Menu',
+            icon: Icon(Icons.menu),
+            label: 'Menu', // Ganti label sesuai keinginan
           ),
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.person),
-            label: 'Profil',
+            icon: Icon(Icons.person),
+            label: 'Profil', // Ganti label sesuai keinginan
           ),
         ],
+        currentIndex: 0, // Ganti index sesuai yang aktif
+        onTap: (index) {
+          // Implementasikan logika navigasi di sini
+        },
       ),
       tabBuilder: (context, index) {
         switch (index) {

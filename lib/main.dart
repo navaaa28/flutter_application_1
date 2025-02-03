@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_application_1/HalamanAwal/halaman_login.dart';
 import 'package:flutter_application_1/HalamanTengah/dashboard_page.dart';
+import 'package:flutter_application_1/HalamanAwal/main_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Pertama/splashscreen.dart'; // Import file splash_screen.dart
 
@@ -20,7 +22,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const CupertinoApp(
       theme: CupertinoThemeData(brightness: Brightness.light),
-      home: DashboardPage(username: '', password: '',), // SplashScreen menjadi halaman awal
+      home: HalamanLogin(username: '',), // SplashScreen menjadi halaman awal
     );
   }
 }

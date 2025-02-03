@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../HalamanAwal/halaman_login.dart';
+import '';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

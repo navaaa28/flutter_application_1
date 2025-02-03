@@ -22,27 +22,24 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
   }
 
   Future<void> _fetchRequests() async {
-    // Menunggu Persetujuan
     final waitingResponse = await supabase
         .from('izin_cuti')
         .select()
         .eq('status', 'Menunggu Persetujuan Admin')
         .order('tanggal_mulai');
-    
-    // Diizinkan
+
     final approvedResponse = await supabase
         .from('izin_cuti')
         .select()
         .eq('status', 'Diizinkan')
         .order('tanggal_mulai');
-    
-    // Ditolak
+
     final rejectedResponse = await supabase
         .from('izin_cuti')
         .select()
         .eq('status', 'Ditolak')
         .order('tanggal_mulai');
-    
+
     setState(() {
       waitingRequests = List<Map<String, dynamic>>.from(waitingResponse);
       approvedRequests = List<Map<String, dynamic>>.from(approvedResponse);
@@ -51,33 +48,29 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
   }
 
   Future<void> _updateStatus(
-    String requestId, String newStatus, int index, String statusType) async {
-  try {
-    // Update status in the database
-    await supabase
-        .from('izin_cuti')
-        .update({'status': newStatus}).eq('id', requestId);
+      String requestId, String newStatus, int index, String statusType) async {
+    try {
+      await supabase
+          .from('izin_cuti')
+          .update({'status': newStatus}).eq('id', requestId);
 
-    // Force reload the request list to reflect changes
-    await _fetchRequests(); // Refresh data
+      await _fetchRequests();
 
-    // Update status locally in the list
-    setState(() {
-      if (statusType == 'Menunggu Persetujuan Admin') {
-        waitingRequests[index]['status'] = newStatus;
-      } else if (statusType == 'Diizinkan') {
-        approvedRequests[index]['status'] = newStatus;
-      } else if (statusType == 'Ditolak') {
-        rejectedRequests[index]['status'] = newStatus;
-      }
-    });
+      setState(() {
+        if (statusType == 'Menunggu Persetujuan Admin') {
+          waitingRequests[index]['status'] = newStatus;
+        } else if (statusType == 'Diizinkan') {
+          approvedRequests[index]['status'] = newStatus;
+        } else if (statusType == 'Ditolak') {
+          rejectedRequests[index]['status'] = newStatus;
+        }
+      });
 
-    _showDialog('Status Diperbarui', 'Status izin/cuti berhasil diperbarui.');
-  } catch (e) {
-    _showDialog('Gagal', 'Terjadi kesalahan: ${e.toString()}');
+      _showDialog('Status Diperbarui', 'Status izin/cuti berhasil diperbarui.');
+    } catch (e) {
+      _showDialog('Gagal', 'Terjadi kesalahan: ${e.toString()}');
+    }
   }
-}
-
 
   void _showDialog(String title, String content) {
     showCupertinoDialog(
@@ -106,14 +99,14 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(CupertinoIcons.clock),
-            label: 'Menunggu Persetujuan Admin',
+            label: 'Menunggu',
           ),
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.check_mark),
+            icon: Icon(CupertinoIcons.check_mark_circled),
             label: 'Diizinkan',
           ),
           BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.clear_thick_circled),
+            icon: Icon(CupertinoIcons.clear_circled),
             label: 'Ditolak',
           ),
         ],
@@ -136,69 +129,75 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
   Widget _buildRequestList(List<Map<String, dynamic>> requestList, String statusType) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text('$statusType'),
+        middle: Text(statusType),
       ),
       child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              if (requestList.isEmpty)
-                const Center(child: Text('Tidak ada permintaan yang menunggu persetujuan.')),
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: requestList.length,
-                itemBuilder: (context, index) {
-                  final request = requestList[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Nama: ${request['display_name']}'),
-                          Text('Jabatan: ${request['departemen']}'),
-                          Text('Tanggal Mulai: ${request['tanggal_mulai']}'),
-                          Text('Tanggal Selesai: ${request['tanggal_selesai']}'),
-                          Text('Alasan: ${request['alasan']}'),
-                          Text('Kontak Darurat: ${request['kontak_darurat'] ?? "N/A"}'),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Status: ${request['status']}'),
-                              Row(
-                                children: [
-                                  CupertinoButton(
-                                    onPressed: () {
-                                      _updateStatus(request['id'].toString(), 'Diizinkan', index, statusType);
-                                    },
-                                    color: CupertinoColors.activeGreen,
-                                    child: const Text('Diizinkan'),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  CupertinoButton(
-                                    onPressed: () {
-                                      _updateStatus(request['id'].toString(), 'Ditolak', index, statusType);
-                                    },
-                                    color: CupertinoColors.destructiveRed,
-                                    child: const Text('Ditolak'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: requestList.length,
+          itemBuilder: (context, index) {
+            final request = requestList[index];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: CupertinoColors.systemGrey6,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            ],
-          ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Nama: ${request['display_name']}',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text('Jabatan: ${request['departemen']}',
+                        style: const TextStyle(fontSize: 14)),
+                    Text('Tanggal Mulai: ${request['tanggal_mulai']}',
+                        style: const TextStyle(fontSize: 14)),
+                    Text('Tanggal Selesai: ${request['tanggal_selesai']}',
+                        style: const TextStyle(fontSize: 14)),
+                        Text('Alasan : ${request['alasan']}',
+                        style: const TextStyle(fontSize: 14)),
+                        Text('Kontak Darurat: ${request['kontak_darurat']}',
+                        style: const TextStyle(fontSize: 14)),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        CupertinoButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          onPressed: () {
+                            _updateStatus(request['id'].toString(),
+                                'Diizinkan', index, statusType);
+                          },
+                          color: CupertinoColors.activeGreen,
+                          child: const Text('Diizinkan'),
+                        ),
+                        CupertinoButton(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          onPressed: () {
+                            _updateStatus(request['id'].toString(),
+                                'Ditolak', index, statusType);
+                          },
+                          color: CupertinoColors.destructiveRed,
+                          child: const Text('Ditolak'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
