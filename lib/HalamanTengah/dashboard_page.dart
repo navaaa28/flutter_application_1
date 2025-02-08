@@ -79,8 +79,8 @@ class _DashboardPageState extends State<DashboardPage> {
         switch (index) {
           case 0:
             return HomeTab(
-              username: widget.username,
-              informasi: _informasi,
+              username: widget.username, 
+              informasi: () {  },
             );
           case 1:
             return MenuTab(
@@ -91,7 +91,7 @@ class _DashboardPageState extends State<DashboardPage> {
             return ProfileTab(
               username: widget.username,
               password: widget.password,
-              informasi: _informasi,
+              informasi: _informasi, departemen: '',
             );
           default:
             return Container();

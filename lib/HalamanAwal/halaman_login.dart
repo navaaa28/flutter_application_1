@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/HalamanAwal/halaman_register.dart'; // Impor HalamanRegister
+import 'package:flutter_application_1/HalamanAwal/halaman_lupa_password.dart';
+import 'package:flutter_application_1/HalamanAwal/halaman_register.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../HalamanTengah/dashboard_page.dart';
 import '../HalamanAdmin/admin_dashboard.dart';
@@ -14,10 +16,39 @@ class HalamanLogin extends StatefulWidget {
   _HalamanLoginState createState() => _HalamanLoginState();
 }
 
-class _HalamanLoginState extends State<HalamanLogin> {
+class _HalamanLoginState extends State<HalamanLogin> with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  final Color primaryColor = Color(0xFF1A237E);
+  final Color accentColor = Color(0xFF00BCD4);
+  final LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF1A237E), Color(0xFF00BCD4)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   void _login() async {
     String email = _emailController.text;
@@ -45,18 +76,15 @@ class _HalamanLoginState extends State<HalamanLogin> {
           if (role == 'admin') {
             Navigator.push(
               context,
-              CupertinoPageRoute(
-                builder: (context) => const AdminDashboard(),
-              ),
+              _createRoute(const AdminDashboard()),
             );
           } else {
             Navigator.push(
               context,
-              CupertinoPageRoute(
-                builder: (context) => DashboardPage(
-                  username: displayName, password: '',
-                ),
-              ),
+              _createRoute(DashboardPage(
+                username: displayName,
+                password: '',
+              )),
             );
           }
         } else {
@@ -66,7 +94,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
         _showErrorDialog('Login gagal. Periksa email dan password Anda.');
       }
     } catch (e) {
-      _showErrorDialog('Terjadi kesalahan: ${e.toString()}');
+      _showErrorDialog('Email Atau Password Salah');
     }
   }
 
@@ -90,132 +118,240 @@ class _HalamanLoginState extends State<HalamanLogin> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              height: 200,
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(50),
-                  bottomRight: Radius.circular(50),
+    return MaterialApp(
+      theme: ThemeData(
+        primaryColor: primaryColor,
+        colorScheme: ColorScheme.light(
+          primary: primaryColor,
+          secondary: accentColor,
+        ),
+        textTheme: GoogleFonts.poppinsTextTheme(),
+      ),
+      home: Scaffold(
+        backgroundColor: Colors.white, // Latar belakang lebih cerah
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                height: 250,
+                decoration: BoxDecoration(
+                  gradient: primaryGradient,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(40),
+                    bottomRight: Radius.circular(40),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accentColor.withOpacity(0.3),
+                      blurRadius: 20,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ScaleTransition(
+                        scale: _animation,
+                        child: Icon(
+                          Icons.check_circle,
+                          color: Colors.white,
+                          size: 60,
+                        ),
+                      ),
+                      SizedBox(height: 15),
+                      Text(
+                        'ACTIVO',
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              child: Center(
+              SizedBox(height: 40),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Icon(
-                      CupertinoIcons.chat_bubble_2_fill,
-                      color: Colors.white,
-                      size: 60,
-                    ),
-                    SizedBox(height: 10),
+                  children: [
                     Text(
-                      'DigitalTolk',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                      'Welcome to ACTIVO',
+                      style: GoogleFonts.poppins(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: primaryColor, // Warna teks disesuaikan
+                      ),
+                    ),
+                    SizedBox(height: 30),
+                    _buildInputField(
+                      controller: _emailController,
+                      placeholder: 'Email Address',
+                      icon: Icons.mail,
+                    ),
+                    SizedBox(height: 20),
+                    _buildInputField(
+                      controller: _passwordController,
+                      placeholder: 'Password',
+                      icon: Icons.lock,
+                      isPassword: true,
+                    ),
+                    SizedBox(height: 30),
+                    Container(
+                      width: double.infinity,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        gradient: primaryGradient,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accentColor.withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: CupertinoButton(
+                        borderRadius: BorderRadius.circular(12),
+                        onPressed: _login,
+                        child: Text(
+                          'Login',
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 25),
+                    CupertinoButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          _createRoute(const HalamanLupaPassword()),
+                        );
+                      },
+                      child: Text(
+                        'Lupa Password?',
+                        style: GoogleFonts.poppins(
+                          color: primaryColor, // Warna teks disesuaikan
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 25),
+                    CupertinoButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          _createRoute(const HalamanRegister()),
+                        );
+                      },
+                      child: RichText(
+                        text: TextSpan(
+                          text: "Don't have an account? ",
+                          style: GoogleFonts.poppins(
+                            color: Colors.grey, // Warna teks disesuaikan
+                            fontSize: 14,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Register here',
+                              style: GoogleFonts.poppins(
+                                color: primaryColor, // Warna teks disesuaikan
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 40),
-            const Text(
-              'Welcome to DigitalTolk Admin Panel',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  CupertinoTextField(
-                    controller: _emailController,
-                    placeholder: 'Email Address',
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.lightBackgroundGray,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  CupertinoTextField(
-                    controller: _passwordController,
-                    placeholder: 'Password',
-                    obscureText: _obscurePassword,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: CupertinoColors.lightBackgroundGray,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    suffix: CupertinoButton(
-                      padding: EdgeInsets.zero,
-                      child: Icon(
-                        _obscurePassword ? CupertinoIcons.eye : CupertinoIcons.eye_slash,
-                        color: Colors.grey,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  CupertinoButton(
-                    onPressed: _login,
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(10),
-                    child: const Text(
-                      'Login',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'By login to our platform, you agree to our',
-                    style: TextStyle(fontSize: 12),
-                  ),
-                  const Text(
-                    'Terms of Service and Privacy Policy',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  CupertinoButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(builder: (context) => const HalamanRegister()),
-                      );
-                    },
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: const Text(
-                      'Don\'t have an account? Register here',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildInputField({
+    required TextEditingController controller,
+    required String placeholder,
+    required IconData icon,
+    bool isPassword = false,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: CupertinoTextField(
+        controller: controller,
+        placeholder: placeholder,
+        obscureText: isPassword ? _obscurePassword : false,
+        padding: EdgeInsets.all(16),
+        prefix: Padding(
+          padding: EdgeInsets.only(left: 16),
+          child: Icon(icon, color: primaryColor), // Warna icon disesuaikan
+        ),
+        suffix: isPassword
+            ? CupertinoButton(
+                padding: EdgeInsets.only(right: 16),
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
+                child: Icon(
+                  _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  color: primaryColor, // Warna icon disesuaikan
+                ),
+              )
+            : null,
+        decoration: BoxDecoration(
+          color: Colors.white, // Latar belakang text field lebih cerah
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
+        ),
+        style: GoogleFonts.poppins(
+          color: Colors.black, // Warna teks disesuaikan
+        ),
+      ),
+    );
+  }
+
+  // Animasi transisi
+  PageRouteBuilder _createRoute(Widget page) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.easeInOut;
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var offsetAnimation = animation.drive(tween);
+
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          ),
+        );
+      },
     );
   }
 }

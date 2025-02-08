@@ -2,78 +2,218 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/HalamanAwal/halaman_login.dart';
 import 'package:flutter_application_1/HalamanHome/activity_page.dart';
+import 'package:flutter_application_1/HalamanProfil/PengaturanPrivasi/kelola_notifikasi.dart';
 import 'package:flutter_application_1/HalamanProfil/hubungikami.dart';
 import 'package:flutter_application_1/HalamanProfil/laporanmasalah.dart';
 import 'package:flutter_application_1/HalamanProfil/pengaturan_privasi.dart';
 import 'package:flutter_application_1/HalamanProfil/pusatbantuan.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
-import 'gaji.dart';  // Import halaman gaji
+import 'gaji.dart'; // Import halaman gaji
 
-class ProfileTab extends StatelessWidget {
+class ProfileTab extends StatefulWidget {
   final String username;
   final String password;
+  final String departemen;
   final VoidCallback informasi;
 
   const ProfileTab({
-    super.key,
+    Key? key,
     required this.username,
     required this.password,
+    required this.departemen,
     required this.informasi,
-  });
+  }) : super(key: key);
+
+  @override
+  _ProfileTabState createState() => _ProfileTabState();
+}
+
+class _ProfileTabState extends State<ProfileTab> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  File? _image;
+  File? _imageFile;
+  String? _profileUrl;
+  String _displayName = '';
+  String _departemen = '';
+  final ImagePicker _picker = ImagePicker();
+  final Color _primaryColor = const Color(0xFF2A2D7C);
+  final LinearGradient _primaryGradient = const LinearGradient(
+    colors: [Color(0xFF2A2D7C), Color(0xFF00C2FF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserProfile();
+    _fetchUserName();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await _picker.pickImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _fetchUserProfile() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    final response = await Supabase.instance.client
+        .from('users')
+        .select('profile_url')
+        .eq('id', user.id)
+        .single();
+
+    if (response != null && response['profile_url'] != null) {
+      setState(() {
+        _profileUrl = response['profile_url'];
+      });
+    }
+  }
+
+  Future<void> _fetchUserName() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    final response = await Supabase.instance.client
+        .from('users')
+        .select('display_name, departemen')
+        .eq('id', user.id)
+        .single();
+
+    if (response != null && response['display_name'] != null) {
+      setState(() {
+        _displayName = response['display_name'];
+        _departemen = response['departemen'];
+      });
+    }
+  }
+
+  void _showImageSourceSelector() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: const Text('Pilih Sumber Foto'),
+        message: const Text(
+            'Pilih apakah ingin mengambil foto dari kamera atau galeri.'),
+        actions: [
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickImage(ImageSource.camera);
+            },
+            child: const Text('Ambil Foto dari Kamera'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+              _pickImage(ImageSource.gallery);
+            },
+            child: const Text('Pilih Foto dari Galeri'),
+          ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.pop(context),
+          child: const Text(
+            'Batal',
+            style: TextStyle(color: Colors.red),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('Halaman Profil'),
+        middle: Text(
+          'Halaman Profil',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          onPressed: informasi,
+          onPressed: widget.informasi,
           child: const Icon(CupertinoIcons.info_circle, size: 28),
         ),
       ),
       child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.blue.shade100, Colors.purple.shade100],
-          ),
-        ),
+        decoration: BoxDecoration(gradient: _primaryGradient),
         child: SafeArea(
           child: Column(
             children: [
               const SizedBox(height: 40),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.easeInOut,
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                      offset: const Offset(0, 4),
+              GestureDetector(
+                onTap: _showImageSourceSelector,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: CircleAvatar(
+                    radius: 60,
+                    backgroundColor: _primaryColor.withOpacity(0.1),
+                    backgroundImage: _imageFile != null
+                        ? FileImage(_imageFile!) as ImageProvider
+                        : _profileUrl != null
+                            ? NetworkImage(_profileUrl!)
+                            : const AssetImage('images/logo.png'),
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.camera_alt,
+                          color: _primaryColor,
+                          size: 20,
+                        ),
+                      ),
                     ),
-                  ],
-                ),
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundImage: AssetImage('images/logo.png'),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               Text(
-                username,
-                style: const TextStyle(
+                _displayName,
+                style: GoogleFonts.alexandria(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
+                  decoration:TextDecoration.none
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                _departemen,
+                style: GoogleFonts.alexandria(
+                  fontSize: 18,                  
+                  color: Colors.white,
+                  decoration:TextDecoration.none
                 ),
               ),
               const SizedBox(height: 20),
@@ -97,447 +237,69 @@ class ProfileTab extends StatelessWidget {
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      const Text(
-                        'Pengaturan Akun',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildListTile(
-                        icon: CupertinoIcons.person_crop_circle,
+                      _buildSectionTitle('Pengaturan Akun'),
+                      _buildProfileMenuItem(
+                        icon: Icons.person_outline,
                         title: 'Edit Profil',
-                        onTap: () {
-                          showCupertinoDialog(
-                            context: context,
-                            builder: (context) {
-                              final TextEditingController nameController = TextEditingController(text: username);
-                              final TextEditingController emailController = TextEditingController(text: password);
-                              return CupertinoAlertDialog(
-                                title: const Text('Edit Profil'),
-                                content: Column(
-                                  children: [
-                                    const SizedBox(height: 10),
-                                    CupertinoTextField(
-                                      controller: nameController,
-                                      placeholder: 'Nama Baru',
-                                    ),
-                                    const SizedBox(height: 10),
-                                    CupertinoTextField(
-                                      controller: emailController,
-                                      placeholder: 'Email Baru',
-                                    ),
-                                    const SizedBox(height: 10),
-                                    CupertinoButton(
-                                      child: const Text('Ganti Foto Profil'),
-                                      onPressed: () {
-                                        // Aksi untuk mengganti foto profil
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                actions: [
-                                  CupertinoDialogAction(
-                                    child: const Text(
-                                      'Batal',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                    onPressed: () => Navigator.pop(context),
-                                  ),
-                                  CupertinoDialogAction(
-                                    child: const Text('Simpan'),
-                                    onPressed: () {
-                                      // Simpan perubahan nama dan email
-                                      Navigator.pop(context);
-                                      showCupertinoDialog(
-                                        context: context,
-                                        builder: (context) => CupertinoAlertDialog(
-                                          title: const Text('Profil Diperbarui'),
-                                          content: const Text('Perubahan profil Anda telah disimpan.'),
-                                          actions: [
-                                            CupertinoDialogAction(
-                                              child: const Text('OK'),
-                                              onPressed: () => Navigator.pop(context),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
+                        onTap: _showEditProfileDialog,
+                        
                       ),
-                      const Divider(),
-                      _buildListTile(
-                        icon: CupertinoIcons.lock,
+                      _buildProfileMenuItem(
+                        icon: Icons.lock_outline,
                         title: 'Ganti Kata Sandi',
-                        onTap: () {
-                          showCupertinoDialog(
-                            context: context,
-                            builder: (context) {
-                              final TextEditingController passwordController = TextEditingController();
-                              return CupertinoAlertDialog(
-                                title: const Text('Ganti Kata Sandi'),
-                                content: Column(
-                                  children: [
-                                    const SizedBox(height: 10),
-                                    CupertinoTextField(
-                                      obscureText: true,
-                                      placeholder: 'Kata Sandi Lama',
-                                    ),
-                                    CupertinoTextField(
-                                      controller: passwordController,
-                                      obscureText: true,
-                                      placeholder: 'Kata Sandi Baru',
-                                    ),
-                                  ],
-                                ),
-                                actions: [
-                                  CupertinoDialogAction(
-                                    child: const Text(
-                                      'Batal',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                    onPressed: () => Navigator.pop(context),
-                                  ),
-                                  CupertinoDialogAction(
-                                    child: const Text('Simpan'),
-                                    onPressed: () {
-                                      Navigator.pop(context);
-                                      showCupertinoDialog(
-                                        context: context,
-                                        builder: (context) => CupertinoAlertDialog(
-                                          title: const Text('Kata Sandi Diperbarui'),
-                                          content: const Text('Kata sandi Anda telah berhasil diperbarui.'),
-                                          actions: [
-                                            CupertinoDialogAction(
-                                              child: const Text('OK'),
-                                              onPressed: () => Navigator.pop(context),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
+                        onTap: _showChangePasswordDialog,
                       ),
-                      const Divider(),
-                      _buildListTile(
-                        icon: CupertinoIcons.money_dollar,
+                      _buildProfileMenuItem(
+                        icon: Icons.attach_money,
                         title: 'Gaji',
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                              builder: (context) => GajiPage(
-                                selectedSalary: 'Rp 5.000.000',
-                                salaryDate: DateTime(2025, 12, 28),
-                              ),
-                            ),
-                          );
+                          final user =
+                              Supabase.instance.client.auth.currentUser;
+                          if (user != null) {
+                            _navigateTo(GajiPage(userId: user.id));
+                          }
                         },
                       ),
-                      const Divider(),
-                      _buildListTile(
-                        icon: CupertinoIcons.eye,
-                        title: 'Pengaturan Privasi',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(builder: (context) => const PengaturanPrivasiPage()),
-                          );
-                        },
-                      ),
-                      const Divider(),
-                      _buildListTile(
-                        icon: CupertinoIcons.bell,
-                        title: 'Kelola Notifikasi',
-                        onTap: () {
-                          // Aksi untuk mengelola notifikasi
-                        },
-                      ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Aktivitas Pengguna',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildListTile(
-                        icon: CupertinoIcons.clock,
+                      _buildSectionTitle('Aktivitas Pengguna'),
+                      _buildProfileMenuItem(
+                        icon: Icons.history,
                         title: 'Riwayat Aktivitas',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                              builder: (context) => ActivityPage(),
-                            ),
-                          );
-                        },
+                        onTap: () => _navigateTo(ActivityPage()),
                       ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Dukungan dan Bantuan',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildListTile(
-                        icon: CupertinoIcons.question_circle,
+                      _buildSectionTitle('Dukungan & Bantuan'),
+                      _buildProfileMenuItem(
+                        icon: Icons.help_outline,
                         title: 'Pusat Bantuan',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                              builder: (context) => const PusatBantuanPage(),
-                            ),
-                          );
-                        },
+                        onTap: () => _navigateTo(const PusatBantuanPage()),
                       ),
-                      const Divider(),
-                      _buildListTile(
-                        icon: CupertinoIcons.phone,
+                      _buildProfileMenuItem(
+                        icon: Icons.phone,
                         title: 'Hubungi Kami',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(builder: (context) => const HubungiKamiPage()),
-                          );
-                        },
+                        onTap: () => _navigateTo(const HubungiKamiPage()),
                       ),
-                      const Divider(),
-                      _buildListTile(
-                        icon: CupertinoIcons.exclamationmark_triangle,
-                        title: 'Laporan Masalah/Bug',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(builder: (context) => const LaporanMasalahPage()),
-                          );
-                        },
+                      _buildProfileMenuItem(
+                        icon: Icons.bug_report,
+                        title: 'Laporan Masalah',
+                        onTap: () => _navigateTo(const LaporanMasalahPage()),
+                      ),
+                      _buildSectionTitle('Pengaturan'),
+                      _buildProfileMenuItem(
+                        icon: Icons.notifications_active,
+                        title: 'Notifikasi',
+                        onTap: () => _navigateTo(const NotifikasiPage()),
+                      ),
+                      _buildProfileMenuItem(
+                        icon: Icons.security,
+                        title: 'Privasi',
+                        onTap: () => _navigateTo(const PengaturanPrivasiPage()),
+                      ),
+                      _buildProfileMenuItem(
+                        icon: Icons.logout,
+                        title: 'Keluar',
+                        onTap: _showLogoutDialog,
+                        isDestructive: true,
                       ),
                       const SizedBox(height: 20),
-                      const Text(
-                        'Lainnya',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildListTile(
-                        icon: CupertinoIcons.paintbrush,
-                        title: 'Tema/Tampilan',
-                        onTap: () {
-                          showCupertinoModalPopup(
-                            context: context,
-                            builder: (context) => CupertinoActionSheet(
-                              title: const Text('Pilih Tema'),
-                              message: const Text('Silakan pilih tema yang diinginkan.'),
-                              actions: [
-                                CupertinoActionSheetAction(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    showCupertinoDialog(
-                                      context: context,
-                                      builder: (context) => CupertinoAlertDialog(
-                                        title: const Text('Tema Gelap'),
-                                        content: const Text('Tema gelap telah diaktifkan.'),
-                                        actions: [
-                                          CupertinoDialogAction(
-                                            onPressed: () => Navigator.pop(context),
-                                            child: const Text('OK'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                  child: Row(
-                                    children: [
-                                      const Icon(CupertinoIcons.moon_fill, color: Colors.black),
-                                      const SizedBox(width: 8),
-                                      const Text('Tema Gelap'),
-                                    ],
-                                  ),
-                                ),
-                                CupertinoActionSheetAction(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    showCupertinoDialog(
-                                      context: context,
-                                      builder: (context) => CupertinoAlertDialog(
-                                        title: const Text('Tema Terang'),
-                                        content: const Text('Tema terang telah diaktifkan.'),
-                                        actions: [
-                                          CupertinoDialogAction(
-                                            onPressed: () => Navigator.pop(context),
-                                            child: const Text('OK'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                  child: Row(
-                                    children: [
-                                      const Icon(CupertinoIcons.sun_max_fill, color: Colors.orange),
-                                      const SizedBox(width: 8),
-                                      const Text('Tema Terang'),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                              cancelButton: CupertinoActionSheetAction(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text(
-                                  'Batal',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const Divider(),
-                      _buildListTile(
-                        icon: CupertinoIcons.globe,
-                        title: 'Bahasa',
-                        onTap: () {
-                          showCupertinoModalPopup(
-                            context: context,
-                            builder: (context) => CupertinoActionSheet(
-                              title: const Text('Pilih Bahasa'),
-                              message: const Text('Silakan pilih bahasa aplikasi.'),
-                              actions: [
-                                CupertinoActionSheetAction(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    showCupertinoDialog(
-                                      context: context,
-                                      builder: (context) => CupertinoAlertDialog(
-                                        title: const Text('Bahasa Diubah'),
-                                        content: const Text('Bahasa telah diatur ke Inggris.'),
-                                        actions: [
-                                          CupertinoDialogAction(
-                                            onPressed: () => Navigator.pop(context),
-                                            child: const Text('OK'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                  child: Row(
-                                    children: [
-                                      const Icon(CupertinoIcons.flag, color: Colors.blue),
-                                      const SizedBox(width: 8),
-                                      const Text('English'),
-                                    ],
-                                  ),
-                                ),
-                                CupertinoActionSheetAction(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    showCupertinoDialog(
-                                      context: context,
-                                      builder: (context) => CupertinoAlertDialog(
-                                        title: const Text('Bahasa Diubah'),
-                                        content: const Text('Bahasa telah diatur ke Indonesia.'),
-                                        actions: [
-                                          CupertinoDialogAction(
-                                            onPressed: () => Navigator.pop(context),
-                                            child: const Text('OK'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                  child: Row(
-                                    children: [
-                                      const Icon(CupertinoIcons.flag_fill, color: Colors.red),
-                                      const SizedBox(width: 8),
-                                      const Text('Bahasa Indonesia'),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                              cancelButton: CupertinoActionSheetAction(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text(
-                                  'Batal',
-                                  style: TextStyle(color: Colors.red),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      _buildListTile(
-                        icon: CupertinoIcons.square_arrow_right,
-                        title: 'Keluar',
-                        onTap: () {
-                          showCupertinoDialog(
-                            context: context,
-                            builder: (context) => CupertinoAlertDialog(
-                              title: const Text('Keluar'),
-                              content: const Text('Apakah Anda yakin ingin keluar?'),
-                              actions: [
-                                CupertinoDialogAction(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('Batal'),
-                                ),
-                                CupertinoDialogAction(
-                                  onPressed: () async {
-                                    Navigator.pop(context);
-                                    try {
-                                      await Supabase.instance.client.auth.signOut();
-                                      if (context.mounted) {
-                                        Navigator.pushReplacement(
-                                          context,
-                                          CupertinoPageRoute(
-                                            builder: (context) => const HalamanLogin(username: ''),
-                                          ),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (context.mounted) {
-                                        showCupertinoDialog(
-                                          context: context,
-                                          builder: (context) => CupertinoAlertDialog(
-                                            title: const Text('Error'),
-                                            content: Text('Terjadi kesalahan: ${e.toString()}'),
-                                            actions: [
-                                              CupertinoDialogAction(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text('OK'),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
-                                  child: const Text('Keluar'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
                     ],
                   ),
                 ),
@@ -549,22 +311,342 @@ class ProfileTab extends StatelessWidget {
     );
   }
 
-  Widget _buildListTile({
+  Widget _buildSectionTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: _primaryColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileMenuItem({
     required IconData icon,
     required String title,
-    required VoidCallback onTap,
+    required Function() onTap,
+    bool isDestructive = false,
   }) {
     return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: ListTile(
-        leading: Icon(icon, color: Colors.blue),
-        title: Text(title),
-        trailing: const Icon(CupertinoIcons.chevron_right, color: Colors.grey),
+        leading: Icon(icon, color: isDestructive ? Colors.red : _primaryColor),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: isDestructive ? Colors.red : Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: isDestructive ? Colors.red : Colors.grey,
+        ),
         onTap: onTap,
       ),
+    );
+  }
+
+  Future<String?> _uploadImage(String userId) async {
+    if (_image == null) return null;
+    try {
+      final fileExt = _image!.path.split('.').last;
+      final filePath = 'profile_pictures/$userId.$fileExt';
+
+      // Upload gambar ke Supabase Storage
+      await Supabase.instance.client.storage.from('profile_pictures').upload(
+            filePath,
+            _image!,
+            fileOptions: const FileOptions(upsert: true),
+          );
+
+      // Ambil URL gambar yang baru diunggah
+      final imageUrl = Supabase.instance.client.storage
+          .from('profile_pictures')
+          .getPublicUrl(filePath);
+
+      return imageUrl;
+    } catch (e) {
+      _showErrorDialog('Gagal mengunggah gambar: ${e.toString()}');
+      return null;
+    }
+  }
+
+  void _showEditProfileDialog() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return CupertinoAlertDialog(
+            title: const Text('Edit Profil'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () async {
+                      await _pickImage(ImageSource.gallery);
+                      setState(() {}); // Perbarui tampilan jika gambar berubah
+                    },
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: _image != null
+                          ? FileImage(_image!)
+                          : (_profileUrl != null
+                              ? NetworkImage(_profileUrl!)
+                              : const AssetImage('images/logo.png')
+                                  as ImageProvider),
+                      child: _image == null
+                          ? const Icon(Icons.camera_alt,
+                              size: 40, color: Colors.grey)
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  CupertinoTextField(
+                    controller: _nameController,
+                    placeholder: 'Nama Baru',
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  const SizedBox(height: 16),
+                  CupertinoTextField(
+                    controller: _emailController,
+                    placeholder: 'Email Baru',
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  const SizedBox(height: 16),
+                  CupertinoTextField(
+                    controller: _phoneController,
+                    placeholder: 'Nomor Telepon Baru',
+                    padding: const EdgeInsets.all(12),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text(
+                  'Batal',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+              CupertinoDialogAction(
+                child: const Text('Simpan'),
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await _updateUserProfile();
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _updateUserProfile() async {
+    final user = Supabase.instance.client.auth.currentUser;
+
+    if (user == null) {
+      _showErrorDialog("User tidak ditemukan.");
+      return;
+    }
+
+    try {
+      String? imageUrl;
+
+      // Jika ada gambar baru, upload ke Supabase Storage
+      if (_image != null) {
+        imageUrl = await _uploadImage(user.id);
+      }
+
+      // Update data user di database Supabase
+      await Supabase.instance.client.from('users').update({
+        'display_name': _nameController.text, // Simpan nama baru
+        'email': _emailController.text,
+        'phone': _phoneController.text,
+        if (imageUrl != null) 'profile_url': imageUrl,
+      }).eq('id', user.id);
+
+      // Perbarui UI dengan data terbaru
+      setState(() {
+        _profileUrl = imageUrl ?? _profileUrl;
+        _displayName = _nameController.text; // Perbarui nama yang ditampilkan
+      });
+
+      _showSuccessDialog('Profil berhasil diperbarui!');
+    } catch (e) {
+      _showErrorDialog('Gagal memperbarui profil: ${e.toString()}');
+    }
+  }
+
+  void _showChangePasswordDialog() {
+  String oldPassword = '';
+  String newPassword = '';
+
+  showCupertinoDialog(
+    context: context,
+    builder: (context) => CupertinoAlertDialog(
+      title: const Text('Ganti Kata Sandi'),
+      content: Column(
+        children: [
+          const SizedBox(height: 10),
+          CupertinoTextField(
+            obscureText: true,
+            placeholder: 'Kata Sandi Lama',
+            padding: const EdgeInsets.all(12),
+            onChanged: (value) => oldPassword = value,
+          ),
+          const SizedBox(height: 16),
+          CupertinoTextField(
+            obscureText: true,
+            placeholder: 'Kata Sandi Baru',
+            padding: const EdgeInsets.all(12),
+            onChanged: (value) => newPassword = value,
+          ),
+        ],
+      ),
+      actions: [
+        CupertinoDialogAction(
+          child: const Text(
+            'Batal',
+            style: TextStyle(color: Colors.red),
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+        CupertinoDialogAction(
+          child: const Text('Simpan'),
+          onPressed: () async {
+            Navigator.pop(context);
+            await _changePassword(oldPassword, newPassword);
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _changePassword(String oldPassword, String newPassword) async {
+  final supabase = Supabase.instance.client;
+  final user = supabase.auth.currentUser;
+
+  if (user == null) {
+    _showErrorDialog('Anda belum login.');
+    return;
+  }
+
+  try {
+    // Cek apakah password lama benar
+    final response = await supabase.auth.signInWithPassword(
+      email: user.email!,
+      password: oldPassword,
+    );
+
+    if (response.user == null) {
+      _showErrorDialog('Kata sandi lama salah.');
+      return;
+    }
+
+    // Ubah password ke yang baru
+    await supabase.auth.updateUser(UserAttributes(password: newPassword));
+    _showSuccessDialog('Kata sandi berhasil diubah!');
+  } catch (e) {
+    _showErrorDialog('Terjadi kesalahan: $e');
+  }
+}
+
+  void _showLogoutDialog() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Konfirmasi Keluar'),
+        content: const Text('Apakah Anda yakin ingin keluar dari akun ini?'),
+        actions: [
+          CupertinoDialogAction(
+            child: const Text('Batal'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          CupertinoDialogAction(
+            child: const Text(
+              'Keluar',
+              style: TextStyle(color: Colors.red),
+            ),
+            onPressed: () async {
+              try {
+                await Supabase.instance.client.auth.signOut();
+                if (context.mounted) {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (context) => const HalamanLogin(username: ''),
+                    ),
+                    (route) => false,
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  _showErrorDialog('Error: ${e.toString()}');
+                }
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: <Widget>[
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessDialog(String message) {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Sukses'),
+        content: Text(message),
+        actions: <Widget>[
+          CupertinoDialogAction(
+            child: const Text('OK'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateTo(Widget page) {
+    Navigator.push(
+      context,
+      CupertinoPageRoute(builder: (context) => page),
     );
   }
 }

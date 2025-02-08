@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class IzinCutiAdminPage extends StatefulWidget {
@@ -14,6 +15,13 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
   List<Map<String, dynamic>> waitingRequests = [];
   List<Map<String, dynamic>> approvedRequests = [];
   List<Map<String, dynamic>> rejectedRequests = [];
+  final Color primaryColor = Color(0xFF2A2D7C);
+  final Color accentColor = Color(0xFF00C2FF);
+  final LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF2A2D7C), Color(0xFF00C2FF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
   @override
   void initState() {
@@ -25,7 +33,7 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
     final waitingResponse = await supabase
         .from('izin_cuti')
         .select()
-        .eq('status', 'Menunggu Persetujuan Admin')
+        .eq('status', 'Menunggu Persetujuan Atasan')
         .order('tanggal_mulai');
 
     final approvedResponse = await supabase
@@ -57,7 +65,7 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
       await _fetchRequests();
 
       setState(() {
-        if (statusType == 'Menunggu Persetujuan Admin') {
+        if (statusType == 'Menunggu Persetujuan Atasan') {
           waitingRequests[index]['status'] = newStatus;
         } else if (statusType == 'Diizinkan') {
           approvedRequests[index]['status'] = newStatus;
@@ -94,42 +102,62 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoTabScaffold(
-      tabBar: CupertinoTabBar(
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.clock),
-            label: 'Menunggu',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.check_mark_circled),
-            label: 'Diizinkan',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(CupertinoIcons.clear_circled),
-            label: 'Ditolak',
-          ),
-        ],
+    return MaterialApp(
+      theme: ThemeData(
+        primaryColor: primaryColor,
+        colorScheme: ColorScheme.light(
+          primary: primaryColor,
+          secondary: accentColor,
+        ),
+        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      tabBuilder: (context, index) {
-        switch (index) {
-          case 0:
-            return _buildRequestList(waitingRequests, 'Menunggu Persetujuan Admin');
-          case 1:
-            return _buildRequestList(approvedRequests, 'Diizinkan');
-          case 2:
-            return _buildRequestList(rejectedRequests, 'Ditolak');
-          default:
-            return _buildRequestList(waitingRequests, 'Menunggu Persetujuan Admin');
-        }
-      },
+      home: CupertinoTabScaffold(
+        tabBar: CupertinoTabBar(
+          backgroundColor: primaryColor,
+          activeColor: Colors.white,
+          inactiveColor: Colors.white.withOpacity(0.7),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.clock),
+              label: 'Menunggu',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.check_mark_circled),
+              label: 'Diizinkan',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(CupertinoIcons.clear_circled),
+              label: 'Ditolak',
+            ),
+          ],
+        ),
+        tabBuilder: (context, index) {
+          switch (index) {
+            case 0:
+              return _buildRequestList(waitingRequests, 'Menunggu Persetujuan Admin');
+            case 1:
+              return _buildRequestList(approvedRequests, 'Diizinkan');
+            case 2:
+              return _buildRequestList(rejectedRequests, 'Ditolak');
+            default:
+              return _buildRequestList(waitingRequests, 'Menunggu Persetujuan Admin');
+          }
+        },
+      ),
     );
   }
 
   Widget _buildRequestList(List<Map<String, dynamic>> requestList, String statusType) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text(statusType),
+        middle: Text(
+          statusType,
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: primaryColor,
       ),
       child: SafeArea(
         child: ListView.builder(
@@ -140,13 +168,13 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: CupertinoColors.systemGrey6,
+                gradient: primaryGradient,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    color: accentColor.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
                   ),
                 ],
               ),
@@ -155,20 +183,50 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Nama: ${request['display_name']}',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(
+                      'Nama: ${request['display_name']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('Jabatan: ${request['departemen']}',
-                        style: const TextStyle(fontSize: 14)),
-                    Text('Tanggal Mulai: ${request['tanggal_mulai']}',
-                        style: const TextStyle(fontSize: 14)),
-                    Text('Tanggal Selesai: ${request['tanggal_selesai']}',
-                        style: const TextStyle(fontSize: 14)),
-                        Text('Alasan : ${request['alasan']}',
-                        style: const TextStyle(fontSize: 14)),
-                        Text('Kontak Darurat: ${request['kontak_darurat']}',
-                        style: const TextStyle(fontSize: 14)),
+                    Text(
+                      'Jabatan: ${request['departemen']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                    Text(
+                      'Tanggal Mulai: ${request['tanggal_mulai']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                    Text(
+                      'Tanggal Selesai: ${request['tanggal_selesai']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                    Text(
+                      'Alasan: ${request['alasan']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                    Text(
+                      'Kontak Darurat: ${request['kontak_darurat']}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -179,8 +237,15 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
                             _updateStatus(request['id'].toString(),
                                 'Diizinkan', index, statusType);
                           },
-                          color: CupertinoColors.activeGreen,
-                          child: const Text('Diizinkan'),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Text(
+                            'Diizinkan',
+                            style: GoogleFonts.poppins(
+                              color: primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                         CupertinoButton(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -188,8 +253,15 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
                             _updateStatus(request['id'].toString(),
                                 'Ditolak', index, statusType);
                           },
-                          color: CupertinoColors.destructiveRed,
-                          child: const Text('Ditolak'),
+                          color: const Color.fromARGB(255, 255, 0, 0),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Text(
+                            'Ditolak',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ],
                     ),

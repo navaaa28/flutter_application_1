@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Untuk format tanggal
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ActivityPage extends StatefulWidget {
   @override
@@ -11,6 +12,8 @@ class ActivityPage extends StatefulWidget {
 class _ActivityPageState extends State<ActivityPage> {
   List<Map<String, dynamic>> attendanceList = [];
   List<Map<String, dynamic>> leaveList = [];
+  final Color primaryColor = Color(0xFF2A2D7C);
+  final Color accentColor = Color(0xFF00C2FF);
 
   @override
   void initState() {
@@ -95,7 +98,15 @@ class _ActivityPageState extends State<ActivityPage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: const Text('Aktivitas Absen & Izin Cuti'),
+        middle: Text(
+          'Aktivitas Absen & Izin Cuti',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: primaryColor,
+        border: null,
       ),
       child: SafeArea(
         child: SingleChildScrollView(
@@ -106,14 +117,22 @@ class _ActivityPageState extends State<ActivityPage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   "Data Absensi",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: primaryColor,
                   ),
                 ),
               ),
               attendanceList.isEmpty
-                  ? Center(child: Text("Tidak ada data absensi"))
+                  ? Center(
+                      child: Text(
+                        "Tidak ada data absensi",
+                        style: GoogleFonts.poppins(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    )
                   : ListView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
@@ -124,6 +143,10 @@ class _ActivityPageState extends State<ActivityPage> {
                           margin: const EdgeInsets.symmetric(
                             vertical: 8.0,
                             horizontal: 16.0,
+                          ),
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: ListTile(
                             leading: CircleAvatar(
@@ -140,13 +163,25 @@ class _ActivityPageState extends State<ActivityPage> {
                             ),
                             title: Text(
                               attendance['jenis_absen']?.toUpperCase() ?? 'N/A',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(formatDate(attendance['tanggal'])),
-                                Text(attendance['lokasi'] ?? 'Lokasi tidak tersedia'),
+                                Text(
+                                  formatDate(attendance['tanggal']),
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  attendance['lokasi'] ?? 'Lokasi tidak tersedia',
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -157,14 +192,22 @@ class _ActivityPageState extends State<ActivityPage> {
                 padding: const EdgeInsets.all(16.0),
                 child: Text(
                   "Data Izin Cuti",
-                  style: TextStyle(
+                  style: GoogleFonts.poppins(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    color: primaryColor,
                   ),
                 ),
               ),
               leaveList.isEmpty
-                  ? Center(child: Text("Tidak ada data izin cuti"))
+                  ? Center(
+                      child: Text(
+                        "Tidak ada data izin cuti",
+                        style: GoogleFonts.poppins(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    )
                   : ListView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
@@ -176,20 +219,56 @@ class _ActivityPageState extends State<ActivityPage> {
                             vertical: 8.0,
                             horizontal: 16.0,
                           ),
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: ListTile(
                             title: Text(
                               leave['display_name'] ?? 'N/A',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Departemen: ${leave['departemen'] ?? 'N/A'}"),
-                                Text("Tanggal Mulai: ${leave['tanggal_mulai'] ?? 'N/A'}"),
-                                Text("Tanggal Selesai: ${leave['tanggal_selesai'] ?? 'N/A'}"),
-                                Text("Alasan: ${leave['alasan'] ?? 'Tidak tersedia'}"),
-                                Text("Kontak Darurat: ${leave['kontak_darurat'] ?? 'N/A'}"),
-                                Text("Status: ${leave['status'] ?? 'N/A'}"),
+                                Text(
+                                  "Departemen: ${leave['departemen'] ?? 'N/A'}",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  "Tanggal Mulai: ${leave['tanggal_mulai'] ?? 'N/A'}",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  "Tanggal Selesai: ${leave['tanggal_selesai'] ?? 'N/A'}",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  "Alasan: ${leave['alasan'] ?? 'Tidak tersedia'}",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  "Kontak Darurat: ${leave['kontak_darurat'] ?? 'N/A'}",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                                Text(
+                                  "Status: ${leave['status'] ?? 'N/A'}",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
                               ],
                             ),
                           ),

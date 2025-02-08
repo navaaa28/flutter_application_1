@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/HalamanMenu/absensikeluar_page.dart';
 import 'package:flutter_application_1/HalamanMenu/izincuti_page.dart';
 import 'package:flutter_application_1/HalamanMenu/lembur_page.dart';
-import 'absensimasuk_page.dart';
+import 'package:flutter_application_1/HalamanMenu/absensimasuk_page.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MenuTab extends StatefulWidget {
   final VoidCallback informasi;
@@ -21,6 +23,93 @@ class MenuTab extends StatefulWidget {
 
 class _MenuTabState extends State<MenuTab> {
   bool isDarkMode = false;
+  String? departemen;
+  final Color primaryColor = Color(0xFF2A2D7C);
+  final Color accentColor = Color(0xFF00C2FF);
+  final LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF2A2D7C), Color(0xFF00C2FF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  String username = "";
+  String profileImageUrl = "";
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserProfile();
+    setupRealtimeListener();
+  }
+
+  Future<void> fetchUserProfile() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      print('User not logged in');
+      return;
+    }
+
+    try {
+      final response = await supabase
+          .from('users')
+          .select('username')
+          .eq('id', user.id)
+          .single();
+      setState(() {
+        username = response['username'] ?? "Pengguna";
+      });
+    } catch (e) {
+      print('Error fetching profile image: $e');
+    }
+  }
+
+  Future<void> fetchUserName() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      print('User not logged in');
+      return;
+    }
+
+    try {
+      final response = await supabase
+          .from('users')
+          .select('profile_url, departemen')
+          .eq('id', user.id)
+          .single();
+            setState(() {
+            profileImageUrl = response['profile_url'];
+            departemen = response['departemen'] ?? 'Departemen Tidak Diketahui';
+          });
+
+    } catch (e) {
+      print('Error fetching profile image: $e');
+    }
+  }
+
+  void setupRealtimeListener() {
+    final supabase = Supabase.instance.client;
+    final userId = supabase.auth.currentUser?.id;
+
+    if (userId == null) {
+      print('User not logged in, skipping realtime listener setup.');
+      return;
+    }
+
+    // Listen to user profile changes (profile_url & username updates)
+    supabase
+        .from('users')
+        .stream(primaryKey: ['id'])
+        .eq('id', userId)
+        .listen((event) {
+          print('User profile updated: $event');
+          fetchUserProfile();
+          fetchUserName();
+        });
+  }
 
   void toggleDarkMode() {
     setState(() {
@@ -31,193 +120,294 @@ class _MenuTabState extends State<MenuTab> {
   @override
   Widget build(BuildContext context) {
     final items = [
-      {'icon': CupertinoIcons.check_mark_circled, 'label': 'Absen Masuk'},
-      {'icon': CupertinoIcons.clear_circled, 'label': 'Absen Keluar'},
-      {'icon': CupertinoIcons.doc_text, 'label': 'Lembur'},
-      {'icon': CupertinoIcons.calendar_badge_minus, 'label': 'Izin / Cuti'},
-      {'icon': CupertinoIcons.exclamationmark_triangle, 'label': 'Coming Soon'},
+      {
+        'icon': CupertinoIcons.check_mark_circled,
+        'label': 'Absen Masuk',
+        'page': AbsenMasukPage(
+          username: '',
+        )
+      },
+      {
+        'icon': CupertinoIcons.clear_circled,
+        'label': 'Absen Keluar',
+        'page': AbsenKeluarPage(
+          username: '',
+        )
+      },
+      {
+        'icon': CupertinoIcons.doc_text,
+        'label': 'Lembur',
+        'page': LemburPage()
+      },
+      {
+        'icon': CupertinoIcons.calendar_badge_minus,
+        'label': 'Izin / Cuti',
+        'page': IzinCutiPage()
+      },
+      {
+        'icon': CupertinoIcons.exclamationmark_triangle,
+        'label': 'Coming Soon',
+        'page': null
+      },
     ];
 
-    final theme = isDarkMode ? ThemeData.dark() : ThemeData.light();
-
     return MaterialApp(
-      theme: theme,
+      theme: ThemeData(
+        primaryColor: primaryColor,
+        colorScheme: ColorScheme.light(
+          primary: primaryColor,
+          secondary: accentColor,
+        ),
+        textTheme: GoogleFonts.poppinsTextTheme(),
+      ),
       home: Scaffold(
         body: CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 200.0,
+              expandedHeight: 180.0,
               floating: false,
               pinned: true,
               flexibleSpace: FlexibleSpaceBar(
-                title: Text('Dashboard'),
-                background: Image.asset(
-                  'images/WP.jpg',
-                  fit: BoxFit.cover,
+                title: Text(
+                  'Dashboard',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(1, 1),
+                      )
+                    ],
+                  ),
+                ),
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: primaryGradient,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: Opacity(
+                      opacity: 0.1,
+                      child: Icon(
+                        Icons.dashboard_rounded,
+                        size: 150,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
               ),
               actions: [
-                IconButton(
-                  icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-                  onPressed: toggleDarkMode,
+                Padding(
+                  padding: EdgeInsets.only(right: 16),
+                  child: IconButton(
+                    icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                        color: Colors.white),
+                    onPressed: toggleDarkMode,
+                  ),
                 ),
               ],
             ),
             SliverList(
               delegate: SliverChildListDelegate([
-                // Header Section with Avatar and Greeting
+                // Header Section
                 Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [const Color.fromARGB(255, 158, 211, 255), const Color.fromARGB(255, 105, 178, 241)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                  margin: EdgeInsets.all(16),
+                  child: Card(
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: primaryGradient,
+                        boxShadow: [
+                          BoxShadow(
+                            color: accentColor.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: Offset(0, 10),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 30,
-                        backgroundImage: AssetImage('images/logo.png'),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Row(
                           children: [
-                            const Text(
-                              'Selamat Datang',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                            Container(
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: CircleAvatar(
+                                radius: 28,
+                                backgroundColor: Colors.white,
+                                backgroundImage: profileImageUrl != null
+                                    ? NetworkImage(profileImageUrl!)
+                                    : AssetImage('images/logo.png')
+                                        as ImageProvider,
+                                child: profileImageUrl == null
+                                    ? Icon(Icons.person, color: Colors.grey)
+                                    : null,
                               ),
                             ),
-                            Text(
-                              widget.username,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white70,
+                            SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Selamat Datang',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 18,
+                                      color: Colors.white.withOpacity(0.9),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    widget.username,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 22,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                  departemen ?? 'Departemen Tidak Diketahui',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    color: Colors.white70,
+                                    fontWeight: FontWeight.w500,
+                                  ),                                    
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
 
                 // Menu Grid Section
                 Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    children: items.map((item) {
-                      return GestureDetector(
-                        onTap: () {
-                          if (item['label'] == 'Absen Masuk') {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) => AbsenMasukPage(username: widget.username),
-                              ),
-                            );
-                          } else if (item['label'] == 'Absen Keluar') {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) => AbsenKeluarPage(username: widget.username),
-                              ),
-                            );
-                          } else if (item['label'] == 'Lembur') {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) => LemburPage(),
-                              ),
-                            );
-                          } else if (item['label'] == 'Izin / Cuti') {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (context) => IzinCutiPage(),
-                              ),
-                            );
-                          } else {
-                            _showComingSoonDialog(context);
-                          }
-                        },
-                        child: Card(
-                          elevation: 8,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20.0),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.blue.shade100,
-                                  Colors.blue.shade200,
-                                ],
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(item['icon'] as IconData, size: 32, color: CupertinoColors.activeBlue),
-                                const SizedBox(height: 8),
-                                Text(
-                                  item['label'] as String,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Text(
+                          'Menu Utama',
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: primaryColor,
                           ),
                         ),
-                      );
-                    }).toList(),
+                      ),
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        crossAxisCount: 3,
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 20,
+                        childAspectRatio: 0.9,
+                        children: items.map((item) {
+                          return Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(20),
+                              onTap: () {
+                                if (item['page'] != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            item['page'] as Widget),
+                                  );
+                                } else {
+                                  // Handle case when there's no page (e.g., "Coming Soon")
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Coming Soon!')),
+                                  );
+                                }
+                              },
+                              splashColor: accentColor.withOpacity(0.2),
+                              highlightColor: accentColor.withOpacity(0.1),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  gradient: primaryGradient,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: accentColor.withOpacity(0.2),
+                                      blurRadius: 15,
+                                      offset: Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.white.withOpacity(0.2),
+                                      ),
+                                      child: Icon(
+                                        item['icon'] as IconData,
+                                        size: 28,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    SizedBox(height: 12),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0),
+                                      child: Text(
+                                        item['label'] as String,
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          height: 1.2,
+                                        ),
+                                        maxLines: 2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ),
                 ),
               ]),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showComingSoonDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Coming Soon'),
-        content: const Text('This feature will be available soon.'),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('OK'),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
-        ],
       ),
     );
   }

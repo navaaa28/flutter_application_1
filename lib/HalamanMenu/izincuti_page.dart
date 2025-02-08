@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class IzinCutiPage extends StatefulWidget {
   const IzinCutiPage({Key? key}) : super(key: key);
@@ -16,32 +17,64 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
   final TextEditingController reasonController = TextEditingController();
   final TextEditingController contactController = TextEditingController();
   String displayName = 'Pengguna';
-  String selectedDepartment = 'Ketua'; // Default jabatan
-  final List<String> departments = [
-    'Ketua',
-    'Wakil Ketua',
-    'Sekretaris',
-    'Bendahara',
-    'Koordinator Divisi',
-    'Sekretaris Divisi',
-    'Anggota Divisi',
-    'Staff Ahli Internal',
-    'Staff Ahli Eksternal',
-    'Humas'
-  ];
+  String role = '';
+  final Color primaryColor = Color(0xFF2A2D7C);
+  final Color accentColor = Color(0xFF00C2FF);
+  final LinearGradient primaryGradient = LinearGradient(
+      colors: [Color(0xFF2A2D7C), Color(0xFF00C2FF)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight);
 
   @override
   void initState() {
     super.initState();
     _fetchDisplayName();
+    _fetchRole();
+  }
+
+  Future<void> _fetchRole() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      print('User not logged in');
+      return;
+    }
+
+    try {
+      final response = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+      setState(() {
+        role = response['role'];
+      });
+    } catch (e) {
+      print('$e');
+    }
   }
 
   Future<void> _fetchDisplayName() async {
+    final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
-    if (user != null) {
+
+    if (user == null) {
+      print('User not logged in');
+      return;
+    }
+
+    try {
+      final response = await supabase
+          .from('users')
+          .select('display_name')
+          .eq('id', user.id)
+          .single();
       setState(() {
-        displayName = user.userMetadata?['display_name'] ?? user.email ?? 'Pengguna';
+        displayName = response['display_name'];
       });
+    } catch (e) {
+      print('$e');
     }
   }
 
@@ -90,40 +123,13 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
     );
   }
 
-  void _selectDepartment(BuildContext context) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) {
-        return Container(
-          height: 300,
-          color: Colors.white,
-          child: Column(
-            children: [
-              Expanded(
-                child: CupertinoPicker(
-                  itemExtent: 32.0,
-                  onSelectedItemChanged: (int index) {
-                    setState(() {
-                      selectedDepartment = departments[index];
-                    });
-                  },
-                  children: departments.map((String department) => Text(department)).toList(),
-                ),
-              ),
-              CupertinoButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Selesai'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
+  // Kirim form dan animasi notifikasi sukses
   Future<void> _submitForm() async {
-    if (selectedStartDate == null || selectedEndDate == null || reasonController.text.isEmpty) {
-      _showDialog('Form Tidak Lengkap', 'Harap mengisi semua kolom yang diperlukan.');
+    if (selectedStartDate == null ||
+        selectedEndDate == null ||
+        reasonController.text.isEmpty) {
+      _showDialog(
+          'Form Tidak Lengkap', 'Harap mengisi semua kolom yang diperlukan.');
       return;
     }
 
@@ -142,18 +148,22 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
         'tanggal_mulai': formattedStartDate,
         'tanggal_selesai': formattedEndDate,
         'alasan': reasonController.text,
-        'departemen': selectedDepartment,
+        'departemen': role,
         'kontak_darurat': contactController.text,
         'display_name': displayName,
-        'status': 'Menunggu Persetujuan Atasan', // Status default menunggu
+        'status': 'Menunggu Persetujuan Atasan',
       });
 
-      _showDialog('Berhasil', 'Form izin/cuti berhasil dikirim. Menunggu persetujuan admin.', isSuccess: true);
+      // Animasi transisi sukses
+      _showDialog('Berhasil',
+          'Form izin/cuti berhasil dikirim. Menunggu persetujuan admin.',
+          isSuccess: true);
     } catch (e) {
       _showDialog('Gagal', 'Terjadi kesalahan: ${e.toString()}');
     }
   }
 
+  // Menampilkan dialog dengan transisi animasi
   void _showDialog(String title, String content, {bool isSuccess = false}) {
     showCupertinoDialog(
       context: context,
@@ -179,74 +189,289 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text('Perizinan Cuti'),
+        middle: Text(
+          'Permohonan Cuti',
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: primaryColor,
+        border: null,
       ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 255, 255, 255),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Selamat datang, $displayName!',
-                  style: const TextStyle(fontSize: 18, color: CupertinoColors.white),
-                ),
-              ),
-              const SizedBox(height: 20),
-              _buildSection('Nama Lengkap:', displayName),
-              const SizedBox(height: 20),
-              _buildSection('Jabatan:', selectedDepartment, onTap: () => _selectDepartment(context)),
-              const SizedBox(height: 20),
-              _buildSection('Tanggal Cuti/Izin Mulai:', selectedStartDate == null ? 'Pilih Tanggal' : '${selectedStartDate!.day}-${selectedStartDate!.month}-${selectedStartDate!.year}', onTap: () => _selectDate(context, true)),
-              const SizedBox(height: 20),
-              _buildSection('Tanggal Cuti/Izin Selesai:', selectedEndDate == null ? 'Pilih Tanggal' : '${selectedEndDate!.day}-${selectedEndDate!.month}-${selectedEndDate!.year}', onTap: () => _selectDate(context, false)),
-              const SizedBox(height: 20),
-              _buildSection('Alasan Cuti/Izin:', reasonController.text, controller: reasonController, placeholder: 'Masukkan alasan'),
-              const SizedBox(height: 20),
-              _buildSection('Kontak Darurat (Opsional):', contactController.text, controller: contactController, placeholder: 'Masukkan kontak darurat'),
-              const SizedBox(height: 20),
-              Center(
-                child: CupertinoButton.filled(
-                  onPressed: _submitForm,
-                  child: const Text('Kirim Permintaan'),
-                ),
-              ),
-            ],
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Color(0xFFF0F4FF)],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderSection(),
+                const SizedBox(height: 20),
+                _buildUserInfoSection(),
+                const SizedBox(height: 30),
+                _buildFormSections(),
+                const SizedBox(height: 30),
+                _buildSubmitButton(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSection(String label, String content, {TextEditingController? controller, String? placeholder, Function()? onTap}) {
+  Widget _buildHeaderSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            decoration: BoxDecoration(
-              color: CupertinoColors.systemGrey5,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: controller == null
-                ? Text(content, style: const TextStyle(fontSize: 16))
-                : CupertinoTextField(
-                    controller: controller,
-                    placeholder: placeholder,
-                  ),
+        Text(
+          'Formulir Permohonan',
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: primaryColor,
+          ),
+        ),
+        Text(
+          'Silahkan isi formulir berikut untuk mengajukan cuti/izin',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[600],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildUserInfoSection() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildInfoRow('Nama Lengkap', displayName),
+          Divider(height: 20),
+          _buildInfoRow('Jabatan', role),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[600],
+          ),
+        ),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: primaryColor,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormSections() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _buildDatePickerSection(),
+          SizedBox(height: 20),
+          _buildReasonSection(),
+          SizedBox(height: 20),
+          _buildContactSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePickerSection() {
+    return Column(
+      children: [
+        _buildDatePickerItem(
+          label: 'Tanggal Mulai',
+          date: selectedStartDate,
+          onTap: () => _selectDate(context, true),
+        ),
+        SizedBox(height: 15),
+        _buildDatePickerItem(
+          label: 'Tanggal Selesai',
+          date: selectedEndDate,
+          onTap: () => _selectDate(context, false),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDatePickerItem(
+      {required String label, DateTime? date, required Function() onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+            Text(
+              date != null
+                  ? '${date.day}/${date.month}/${date.year}'
+                  : 'Pilih Tanggal',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: date != null ? primaryColor : Colors.grey[400],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReasonSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Alasan Cuti/Izin',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 8),
+        CupertinoTextField(
+          controller: reasonController,
+          placeholder: 'Masukkan alasan lengkap...',
+          style: GoogleFonts.poppins(fontSize: 14),
+          padding: EdgeInsets.all(16),
+          maxLines: 4,
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          placeholderStyle: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[400],
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContactSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Kontak Darurat (Opsional)',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 8),
+        CupertinoTextField(
+          controller: contactController,
+          placeholder: 'Masukkan kontak darurat...',
+          style: GoogleFonts.poppins(fontSize: 14),
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          placeholderStyle: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[400],
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withOpacity(0.3),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: CupertinoButton(
+        padding: EdgeInsets.symmetric(vertical: 18, horizontal: 40),
+        borderRadius: BorderRadius.circular(30),
+        color: primaryColor,
+        onPressed: _submitForm,
+        child: Text(
+          'Kirim Permohonan',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
     );
   }
 }

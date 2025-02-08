@@ -1,92 +1,133 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/HalamanAwal/halaman_login.dart';
 import 'dart:async';
-import '../HalamanAwal/halaman_login.dart';
-import '';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
-
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _logoScale;
+  late Animation<double> _logoFade;
+  late Animation<Offset> _textSlide;
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
-      // Navigasi ke halaman login dengan transisi fade
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    );
+
+    // Animasi untuk logo: Fade in + scale
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
+
+    _logoScale = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(0.3, 1.0, curve: Curves.elasticOut),
+      ),
+    );
+
+    // Animasi untuk teks: Slide dari bawah
+    _textSlide = Tween<Offset>(
+      begin: Offset(0, 0.5),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Interval(0.5, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    _controller.forward();
+
+    Timer(Duration(seconds: 3), () {
       Navigator.pushReplacement(
         context,
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) {
-            return const HalamanLogin(username: 'name');
-          },
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOut;
-            
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            var offsetAnimation = animation.drive(tween);
-
-            return SlideTransition(position: offsetAnimation, child: child);
-          },
-        ),
+        MaterialPageRoute(builder: (context) => HalamanLogin(username: '')),
       );
     });
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('images/WP.jpg'), // Ganti dengan path gambar latar belakang Anda
-            fit: BoxFit.cover, // Agar gambar memenuhi seluruh layar
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Ilustrasi gambar
-              const Image(
-                image: AssetImage('images/logo.png'), // Ganti dengan ilustrasi sesuai gambar
-                width: 200,
-                height: 200,
+    return Scaffold(
+      backgroundColor: Color(0xFF1A237E),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo dengan animasi fade + scale
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _logoFade.value,
+                  child: Transform.scale(
+                    scale: _logoScale.value,
+                    child: Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Image.asset(
+                        'images/logo.png',
+                        width: 150,  // Sesuaikan ukuran
+                        height: 150,
+                        fit: BoxFit.contain, // Pastikan logo terlihat utuh
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            
+            SizedBox(height: 40),
+            
+            // Teks dengan animasi slide
+            SlideTransition(
+              position: _textSlide,
+              child: Column(
+                children: [
+                  Text(
+                    'ACTIVO',
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.w300,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Attendance & To-Do List',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.9),
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 30),
-              // Teks besar
-              const Text(
-                'FUTURE OF',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const Text(
-                'VIRTUAL',
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 0, 0, 0),
-                ),
-              ),
-              const Text(
-                'PRESENTYTY',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 0, 0, 0),
-                ),
-              ),
-              const SizedBox(height: 50),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
