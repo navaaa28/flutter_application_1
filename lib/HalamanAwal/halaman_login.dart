@@ -16,7 +16,8 @@ class HalamanLogin extends StatefulWidget {
   _HalamanLoginState createState() => _HalamanLoginState();
 }
 
-class _HalamanLoginState extends State<HalamanLogin> with SingleTickerProviderStateMixin {
+class _HalamanLoginState extends State<HalamanLogin>
+    with SingleTickerProviderStateMixin {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -152,12 +153,29 @@ class _HalamanLoginState extends State<HalamanLogin> with SingleTickerProviderSt
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ScaleTransition(
-                        scale: _animation,
-                        child: Icon(
-                          Icons.check_circle,
-                          color: Colors.white,
-                          size: 60,
+                      ClipOval(
+                        child: Container(
+                          width: 100, // Sesuaikan ukuran
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Image.asset(
+                            'images/logo.png',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit
+                                .cover, // Pastikan gambar menutupi lingkaran
+                          ),
                         ),
                       ),
                       SizedBox(height: 15),
@@ -274,6 +292,7 @@ class _HalamanLoginState extends State<HalamanLogin> with SingleTickerProviderSt
                   ],
                 ),
               ),
+              
             ],
           ),
         ),
@@ -324,7 +343,8 @@ class _HalamanLoginState extends State<HalamanLogin> with SingleTickerProviderSt
         decoration: BoxDecoration(
           color: Colors.white, // Latar belakang text field lebih cerah
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
+          border: Border.all(
+              color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
         ),
         style: GoogleFonts.poppins(
           color: Colors.black, // Warna teks disesuaikan
@@ -341,7 +361,8 @@ class _HalamanLoginState extends State<HalamanLogin> with SingleTickerProviderSt
         const begin = Offset(0.0, 1.0);
         const end = Offset.zero;
         const curve = Curves.easeInOut;
-        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
         var offsetAnimation = animation.drive(tween);
 
         return FadeTransition(

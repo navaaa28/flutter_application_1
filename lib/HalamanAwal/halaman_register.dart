@@ -171,10 +171,30 @@ class _HalamanRegisterState extends State<HalamanRegister> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.check_circle,
-                        color: Colors.white,
-                        size: 60,
+                      ClipOval(
+                        child: Container(
+                          width: 100, // Sesuaikan ukuran
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Image.asset(
+                            'images/logo.png',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit
+                                .cover, // Pastikan gambar menutupi lingkaran
+                          ),
+                        ),
                       ),
                       SizedBox(height: 15),
                       Text(
@@ -220,7 +240,8 @@ class _HalamanRegisterState extends State<HalamanRegister> {
                         child: CircleAvatar(
                           radius: 60,
                           backgroundColor: Colors.white.withOpacity(0.1),
-                          backgroundImage: _image != null ? FileImage(_image!) : null,
+                          backgroundImage:
+                              _image != null ? FileImage(_image!) : null,
                           child: _image == null
                               ? Icon(
                                   Icons.camera_alt,
@@ -380,7 +401,8 @@ class _HalamanRegisterState extends State<HalamanRegister> {
         decoration: BoxDecoration(
           color: Colors.white, // Latar belakang text field lebih cerah
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
+          border: Border.all(
+              color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
         ),
         style: GoogleFonts.poppins(
           color: Colors.black, // Warna teks disesuaikan
@@ -397,7 +419,8 @@ class _HalamanRegisterState extends State<HalamanRegister> {
         const begin = Offset(0.0, 1.0);
         const end = Offset.zero;
         const curve = Curves.easeInOut;
-        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
         var offsetAnimation = animation.drive(tween);
 
         return FadeTransition(

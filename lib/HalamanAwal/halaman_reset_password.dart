@@ -131,7 +131,7 @@ class _HalamanResetPasswordState extends State<HalamanResetPassword>
                 height: 250,
                 decoration: BoxDecoration(
                   gradient: primaryGradient,
-                  borderRadius: const BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(40),
                     bottomRight: Radius.circular(40),
                   ),
@@ -139,32 +139,42 @@ class _HalamanResetPasswordState extends State<HalamanResetPassword>
                     BoxShadow(
                       color: accentColor.withOpacity(0.3),
                       blurRadius: 20,
-                      offset: const Offset(0, 10),
+                      offset: Offset(0, 10),
                     ),
                   ],
                 ),
-                child: SafeArea(
+                child: Center(
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Align(
-                        alignment: Alignment.topLeft,
-                        child: CupertinoButton(
-                          child: const Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
+                      ClipOval(
+                        child: Container(
+                          width: 100, // Sesuaikan ukuran
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 10,
+                                spreadRadius: 2,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Image.asset(
+                            'images/logo.png',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit
+                                .cover, // Pastikan gambar menutupi lingkaran
+                          ),
                         ),
                       ),
-                      const Spacer(),
-                      ScaleTransition(
-                        scale: _animation, // Tambahkan animasi
-                        child: const Icon(
-                          Icons.check_circle,
-                          color: Colors.white,
-                          size: 60,
-                        ),
-                      ),
-                      const SizedBox(height: 15),
+                      SizedBox(height: 15),
                       Text(
-                        'ACTIVO', // Diubah
+                        'ACTIVO',
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontSize: 32,
@@ -172,7 +182,6 @@ class _HalamanResetPasswordState extends State<HalamanResetPassword>
                           letterSpacing: 1.2,
                         ),
                       ),
-                      const Spacer(),
                     ],
                   ),
                 ),
@@ -231,7 +240,8 @@ class _HalamanResetPasswordState extends State<HalamanResetPassword>
         decoration: BoxDecoration(
           color: Colors.white, // Latar belakang text field lebih cerah
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
+          border: Border.all(
+              color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
         ),
         style: GoogleFonts.poppins(),
       ),
@@ -270,7 +280,8 @@ class _HalamanResetPasswordState extends State<HalamanResetPassword>
         decoration: BoxDecoration(
           color: Colors.white, // Latar belakang text field lebih cerah
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
+          border: Border.all(
+              color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
         ),
         style: GoogleFonts.poppins(),
       ),
@@ -301,7 +312,8 @@ class _HalamanResetPasswordState extends State<HalamanResetPassword>
         decoration: BoxDecoration(
           color: Colors.white, // Latar belakang text field lebih cerah
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
+          border: Border.all(
+              color: Colors.grey.withOpacity(0.3)), // Border untuk kontras
         ),
         style: GoogleFonts.poppins(),
       ),

@@ -56,10 +56,10 @@ class _TodoPageState extends State<TodoPage> {
         .stream(primaryKey: ['id'])
         .eq('user_id', userId!)
         .listen((List<Map<String, dynamic>> data) {
-      setState(() {
-        _todos = data;
-      });
-    });
+          setState(() {
+            _todos = data;
+          });
+        });
   }
 
   Future<void> _addTodo() async {
@@ -77,7 +77,9 @@ class _TodoPageState extends State<TodoPage> {
       'user_id': userId,
       'title': _titleController.text,
       'task': _taskController.text,
-      'deadline': _selectedDeadline != null ? DateFormat('yyyy-MM-dd').format(_selectedDeadline!) : null,
+      'deadline': _selectedDeadline != null
+          ? DateFormat('yyyy-MM-dd').format(_selectedDeadline!)
+          : null,
       'is_complete': false,
     });
 
@@ -104,10 +106,8 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   Future<void> _toggleComplete(Map<String, dynamic> todo) async {
-    await _supabase
-        .from('todos')
-        .update({'is_complete': !(todo['is_complete'] as bool)})
-        .eq('id', todo['id']);
+    await _supabase.from('todos').update(
+        {'is_complete': !(todo['is_complete'] as bool)}).eq('id', todo['id']);
   }
 
   Future<void> _deleteTodo(String id) async {
@@ -118,7 +118,9 @@ class _TodoPageState extends State<TodoPage> {
     _titleController.text = todo['title'];
     _taskController.text = todo['task'];
     _deadlineController.text = todo['deadline'] ?? '';
-    _selectedDeadline = todo['deadline'] != null ? DateFormat('yyyy-MM-dd').parse(todo['deadline']) : null;
+    _selectedDeadline = todo['deadline'] != null
+        ? DateFormat('yyyy-MM-dd').parse(todo['deadline'])
+        : null;
 
     await showDialog(
       context: context,
@@ -168,7 +170,9 @@ class _TodoPageState extends State<TodoPage> {
                 await _supabase.from('todos').update({
                   'title': _titleController.text,
                   'task': _taskController.text,
-                  'deadline': _selectedDeadline != null ? DateFormat('yyyy-MM-dd').format(_selectedDeadline!) : null,
+                  'deadline': _selectedDeadline != null
+                      ? DateFormat('yyyy-MM-dd').format(_selectedDeadline!)
+                      : null,
                 }).eq('id', todo['id']);
 
                 _titleController.clear();
@@ -192,9 +196,11 @@ class _TodoPageState extends State<TodoPage> {
       appBar: AppBar(
         title: Text(
           'To-Do List',
-          style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(
+              color: Colors.white, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: Color(0xFF2A2D7C),
+        elevation: 0,
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -208,7 +214,14 @@ class _TodoPageState extends State<TodoPage> {
                         controller: _titleController,
                         decoration: InputDecoration(
                           hintText: 'Masukkan Judul...',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
                         ),
                       ),
                       SizedBox(height: 8),
@@ -216,7 +229,14 @@ class _TodoPageState extends State<TodoPage> {
                         controller: _taskController,
                         decoration: InputDecoration(
                           hintText: 'Tambahkan tugas baru...',
-                          border: OutlineInputBorder(),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
                         ),
                       ),
                       SizedBox(height: 8),
@@ -224,16 +244,36 @@ class _TodoPageState extends State<TodoPage> {
                         controller: _deadlineController,
                         decoration: InputDecoration(
                           hintText: 'Pilih deadline...',
-                          suffixIcon: Icon(Icons.calendar_today),
-                          border: OutlineInputBorder(),
+                          suffixIcon: Icon(Icons.calendar_today,
+                              color: Color(0xFF2A2D7C)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
                         ),
                         readOnly: true,
                         onTap: _selectDeadline,
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _addTodo,
-                        child: Text('Tambah Tugas'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF2A2D7C),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 32, vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Tambah Tugas',
+                          style: GoogleFonts.poppins(
+                              color: Colors.white, fontWeight: FontWeight.w600),
+                        ),
                       ),
                     ],
                   ),
@@ -243,25 +283,40 @@ class _TodoPageState extends State<TodoPage> {
                     itemCount: _todos.length,
                     itemBuilder: (context, index) {
                       final todo = _todos[index];
-                      return Card(
-                        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      return Container(
+                        margin:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
                         child: ListTile(
                           title: Text(
                             todo['title'] ?? 'Tanpa Judul',
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                            style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold),
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(todo['task'] ?? 'Tidak ada tugas'),
-                              if (todo['deadline'] != null) Text('Deadline: ${todo['deadline']}'),
+                              if (todo['deadline'] != null)
+                                Text('Deadline: ${todo['deadline']}'),
                             ],
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               IconButton(
-                                icon: Icon(Icons.edit, color: Colors.blue),
+                                icon:
+                                    Icon(Icons.edit, color: Color(0xFF2A2D7C)),
                                 onPressed: () => _editTodo(todo),
                               ),
                               IconButton(
@@ -272,7 +327,8 @@ class _TodoPageState extends State<TodoPage> {
                                     builder: (context) {
                                       return AlertDialog(
                                         title: Text('Hapus Tugas'),
-                                        content: Text('Apakah Anda yakin ingin menghapus tugas ini?'),
+                                        content: Text(
+                                            'Apakah Anda yakin ingin menghapus tugas ini?'),
                                         actions: [
                                           TextButton(
                                             onPressed: () {
@@ -299,6 +355,7 @@ class _TodoPageState extends State<TodoPage> {
                               Checkbox(
                                 value: todo['is_complete'] ?? false,
                                 onChanged: (value) => _toggleComplete(todo),
+                                activeColor: Color(0xFF2A2D7C),
                               ),
                             ],
                           ),
