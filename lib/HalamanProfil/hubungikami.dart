@@ -38,13 +38,22 @@ class HubungiKamiPage extends StatelessWidget {
             const SizedBox(height: 20),
             const Text(
               'Butuh Bantuan?',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.none,
+            ),
             ),
             const SizedBox(height: 10),
             const Text(
               'Silakan hubungi kami melalui telepon atau email.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.none,
+            ),
             ),
            const SizedBox(height: 30),
             CupertinoListTile(

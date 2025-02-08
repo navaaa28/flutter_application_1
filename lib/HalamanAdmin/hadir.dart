@@ -92,6 +92,7 @@ class _HadirState extends State<Hadir> {
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: primaryColor,
+                            decoration:TextDecoration.none
                           ),
                         ),
                       ),

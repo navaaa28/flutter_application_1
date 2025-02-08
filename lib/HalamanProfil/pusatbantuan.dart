@@ -16,12 +16,20 @@ class PusatBantuanPage extends StatelessWidget {
           children: [
             const Text(
               'Pusat Bantuan',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.none,
+            ),
             ),
             const SizedBox(height: 20),
             const Text(
               'Di bawah ini adalah beberapa panduan yang mungkin membantu Anda.',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.none,
+            ),
             ),
             const SizedBox(height: 20),
             CupertinoListTile(

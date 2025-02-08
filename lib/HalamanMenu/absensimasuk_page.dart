@@ -237,6 +237,7 @@ class _AbsenMasukPageState extends State<AbsenMasukPage> {
             fontSize: 24,
             fontWeight: FontWeight.w700,
             color: primaryColor,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 4),
@@ -245,6 +246,7 @@ class _AbsenMasukPageState extends State<AbsenMasukPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey[600],
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -288,6 +290,7 @@ class _AbsenMasukPageState extends State<AbsenMasukPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey[600],
+            decoration: TextDecoration.none,
           ),
         ),
         Text(
@@ -296,6 +299,7 @@ class _AbsenMasukPageState extends State<AbsenMasukPage> {
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: primaryColor,
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -336,6 +340,7 @@ class _AbsenMasukPageState extends State<AbsenMasukPage> {
             fontSize: 14,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 8),
@@ -361,6 +366,7 @@ class _AbsenMasukPageState extends State<AbsenMasukPage> {
                       color: locationController.text.isEmpty
                           ? Colors.grey[400]
                           : primaryColor,
+                          decoration: TextDecoration.none,
                     ),
                     maxLines: 2,
                   ),
@@ -388,6 +394,7 @@ class _AbsenMasukPageState extends State<AbsenMasukPage> {
             fontSize: 14,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 8),

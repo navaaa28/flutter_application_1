@@ -121,6 +121,7 @@ class _ActivityPageState extends State<ActivityPage> {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: primaryColor,
+                    decoration: TextDecoration.none,
                   ),
                 ),
               ),
@@ -130,6 +131,7 @@ class _ActivityPageState extends State<ActivityPage> {
                         "Tidak ada data absensi",
                         style: GoogleFonts.poppins(
                           color: Colors.grey[600],
+                          decoration: TextDecoration.none,
                         ),
                       ),
                     )
@@ -196,6 +198,7 @@ class _ActivityPageState extends State<ActivityPage> {
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: primaryColor,
+                    decoration: TextDecoration.none,
                   ),
                 ),
               ),
@@ -205,6 +208,7 @@ class _ActivityPageState extends State<ActivityPage> {
                         "Tidak ada data izin cuti",
                         style: GoogleFonts.poppins(
                           color: Colors.grey[600],
+                          decoration: TextDecoration.none,
                         ),
                       ),
                     )

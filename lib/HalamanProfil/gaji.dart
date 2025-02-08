@@ -113,6 +113,7 @@ class _GajiPageState extends State<GajiPage> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.normal,
+                                decoration: TextDecoration.none,
                               ),
                             ),
                     ],

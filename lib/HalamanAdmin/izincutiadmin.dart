@@ -189,6 +189,7 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
+                        decoration:TextDecoration.none
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -197,6 +198,7 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.9),
+                        decoration:TextDecoration.none
                       ),
                     ),
                     Text(
@@ -204,6 +206,7 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.9),
+                        decoration:TextDecoration.none
                       ),
                     ),
                     Text(
@@ -211,6 +214,7 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.9),
+                        decoration:TextDecoration.none
                       ),
                     ),
                     Text(
@@ -218,6 +222,7 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.9),
+                        decoration:TextDecoration.none
                       ),
                     ),
                     Text(
@@ -225,6 +230,7 @@ class _IzinCutiAdminPageState extends State<IzinCutiAdminPage> {
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.9),
+                        decoration:TextDecoration.none
                       ),
                     ),
                     const SizedBox(height: 8),

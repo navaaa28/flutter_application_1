@@ -75,7 +75,11 @@ class _LaporanMasalahPageState extends State<LaporanMasalahPage> {
             children: [
               const Text(
                 'Deskripsikan masalah yang Anda alami:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.none,
+                ),
               ),
               const SizedBox(height: 10),
               CupertinoTextField(
