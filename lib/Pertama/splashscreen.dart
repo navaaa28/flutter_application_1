@@ -81,17 +81,28 @@ class _SplashScreenState extends State<SplashScreen>
                   opacity: _logoFade.value,
                   child: Transform.scale(
                     scale: _logoScale.value,
-                    child: Container(
-                      padding: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Image.asset(
-                        'images/logo.png',
-                        width: 150,  // Sesuaikan ukuran
+                    child: ClipOval(
+                      child: Container(
+                        width: 150, // Sesuaikan ukuran
                         height: 150,
-                        fit: BoxFit.contain, // Pastikan logo terlihat utuh
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          'images/logo.png',
+                          width: 150,
+                          height: 150,
+                          fit: BoxFit.cover, // Pastikan gambar menutupi lingkaran
+                        ),
                       ),
                     ),
                   ),
