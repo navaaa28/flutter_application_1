@@ -1,8 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -25,7 +23,7 @@ class _LemburPageState extends State<LemburPage> {
   final Color primaryColor = Color(0xFF2A2D7C);
   final Color accentColor = Color(0xFF00C2FF);
 
-   @override
+  @override
   void initState() {
     super.initState();
     _fetchAll();
@@ -79,8 +77,13 @@ class _LemburPageState extends State<LemburPage> {
                 ),
               ),
               CupertinoButton(
-                child: Text('Pilih',
-                    style: GoogleFonts.poppins(color: primaryColor)),
+                child: Text(
+                  'Pilih',
+                  style: GoogleFonts.poppins(
+                    color: primaryColor,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
                 onPressed: () {
                   Navigator.pop(context);
                   setState(() {
@@ -131,9 +134,10 @@ class _LemburPageState extends State<LemburPage> {
         'waktu_selesai': _endTime!.toIso8601String(),
         'durasi': _endTime!.difference(_startTime!).inMinutes,
         'catatan': _notesController.text,
+        'status': 'Menunggu Persetujuan Atasan'
       });
 
-      _showMessage('Lembur berhasil disimpan.', isSuccess: true);
+      _showMessage('Lembur berhasil disimpan. Menunggu Persetujuan Atasan', isSuccess: true);
     } catch (e) {
       _showMessage('Gagal menyimpan lembur: ${e.toString()}');
     }
@@ -143,12 +147,28 @@ class _LemburPageState extends State<LemburPage> {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: Text(isSuccess ? 'Sukses' : 'Peringatan',
-            style: GoogleFonts.poppins(color: primaryColor)),
-        content: Text(message, style: GoogleFonts.poppins()),
+        title: Text(
+          isSuccess ? 'Sukses' : 'Peringatan',
+          style: GoogleFonts.poppins(
+            color: primaryColor,
+            decoration: TextDecoration.none,
+          ),
+        ),
+        content: Text(
+          message,
+          style: GoogleFonts.poppins(
+            decoration: TextDecoration.none,
+          ),
+        ),
         actions: [
           CupertinoDialogAction(
-            child: Text('OK', style: GoogleFonts.poppins(color: primaryColor)),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(
+                color: primaryColor,
+                decoration: TextDecoration.none,
+              ),
+            ),
             onPressed: () {
               Navigator.pop(context);
               if (isSuccess) Navigator.pop(context);
@@ -168,6 +188,7 @@ class _LemburPageState extends State<LemburPage> {
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
+            decoration: TextDecoration.none,
           ),
         ),
         backgroundColor: primaryColor,
@@ -190,7 +211,7 @@ class _LemburPageState extends State<LemburPage> {
                 _buildHeaderSection(),
                 const SizedBox(height: 20),
                 _buildUserInfoSection(),
-                const SizedBox(height: 25,),
+                const SizedBox(height: 25),
                 _buildFormSection(),
                 const SizedBox(height: 30),
                 _buildSubmitButton(),
@@ -212,6 +233,7 @@ class _LemburPageState extends State<LemburPage> {
             fontSize: 24,
             fontWeight: FontWeight.w700,
             color: primaryColor,
+            decoration: TextDecoration.none,
           ),
         ),
         Text(
@@ -219,6 +241,7 @@ class _LemburPageState extends State<LemburPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey[600],
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -258,6 +281,7 @@ class _LemburPageState extends State<LemburPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey[600],
+            decoration: TextDecoration.none,
           ),
         ),
         Text(
@@ -266,6 +290,7 @@ class _LemburPageState extends State<LemburPage> {
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: primaryColor,
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -323,6 +348,7 @@ class _LemburPageState extends State<LemburPage> {
             fontSize: 14,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 8),
@@ -345,6 +371,7 @@ class _LemburPageState extends State<LemburPage> {
                     color: controller.text.isEmpty
                         ? Colors.grey[400]
                         : primaryColor,
+                    decoration: TextDecoration.none,
                   ),
                 ),
                 Icon(
@@ -370,13 +397,17 @@ class _LemburPageState extends State<LemburPage> {
             fontSize: 14,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 8),
         CupertinoTextField(
           controller: _notesController,
           placeholder: 'Masukkan catatan tambahan...',
-          style: GoogleFonts.poppins(fontSize: 14),
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            decoration: TextDecoration.none,
+          ),
           padding: EdgeInsets.all(16),
           maxLines: 3,
           decoration: BoxDecoration(
@@ -388,6 +419,7 @@ class _LemburPageState extends State<LemburPage> {
             fontSize: 14,
             color: Colors.grey[400],
             fontStyle: FontStyle.italic,
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -417,6 +449,7 @@ class _LemburPageState extends State<LemburPage> {
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.white,
+            decoration: TextDecoration.none,
           ),
         ),
       ),

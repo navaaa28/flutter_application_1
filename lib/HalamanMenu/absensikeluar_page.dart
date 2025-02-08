@@ -222,7 +222,6 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
             File(photoPath).readAsBytesSync(),
           );
 
-
       await Supabase.instance.client
           .from('absensi')
           .insert({
@@ -233,7 +232,6 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
         'foto_url': photoUrl,
         'jenis_absen': 'keluar',
       });
-
 
       showCupertinoDialog(
         context: context,
@@ -276,6 +274,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
             color: Colors.white,
             fontWeight: FontWeight.w600,
             fontSize: 18,
+            decoration: TextDecoration.none,
           ),
         ),
         backgroundColor: primaryColor,
@@ -321,6 +320,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
             fontSize: 24,
             fontWeight: FontWeight.w700,
             color: primaryColor,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 4),
@@ -329,6 +329,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey[600],
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -372,6 +373,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey[600],
+            decoration: TextDecoration.none,
           ),
         ),
         Text(
@@ -380,6 +382,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: primaryColor,
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -420,6 +423,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
             fontSize: 14,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 8),
@@ -445,6 +449,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
                       color: locationController.text.isEmpty
                           ? Colors.grey[400]
                           : primaryColor,
+                      decoration: TextDecoration.none,
                     ),
                     maxLines: 2,
                   ),
@@ -472,6 +477,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
             fontSize: 14,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 8),
@@ -511,6 +517,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
                       : 'Tekan untuk mengambil foto',
                   style: GoogleFonts.poppins(
                     color: _photoFile != null ? primaryColor : Colors.grey[400],
+                    decoration: TextDecoration.none,
                   ),
                 ),
                 SizedBox(height: 8),
@@ -545,6 +552,7 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.white,
+            decoration: TextDecoration.none,
           ),
         ),
       ),
@@ -552,15 +560,33 @@ class _AbsenKeluarPageState extends State<AbsenKeluarPage> {
   }
 
   // Update dialog untuk konsistensi tema
+  // ignore: unused_element
   void _showDialog(String title, String content) {
     showCupertinoDialog(
       context: context,
       builder: (context) => CupertinoAlertDialog(
-        title: Text(title, style: GoogleFonts.poppins(color: primaryColor)),
-        content: Text(content, style: GoogleFonts.poppins()),
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            color: primaryColor,
+            decoration: TextDecoration.none,
+          ),
+        ),
+        content: Text(
+          content,
+          style: GoogleFonts.poppins(
+            decoration: TextDecoration.none,
+          ),
+        ),
         actions: [
           CupertinoDialogAction(
-            child: Text('OK', style: GoogleFonts.poppins(color: primaryColor)),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(
+                color: primaryColor,
+                decoration: TextDecoration.none,
+              ),
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ],

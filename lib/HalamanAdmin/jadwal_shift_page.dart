@@ -23,17 +23,17 @@ class _JadwalShiftPageState extends State<JadwalShiftPage> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    
+
     // Get employees
     final employeesResponse = await supabase
         .from('users')
         .select('id, display_name')
-        .eq('role', 'pegawai');
-        
+        .neq('role', 'admin');
+
     // Get existing schedule
     final startDate = _selectedWeek.subtract(Duration(days: _selectedWeek.weekday - 1));
     final endDate = startDate.add(Duration(days: 6));
-    
+
     final scheduleResponse = await supabase
         .from('jadwal_shift')
         .select('*')
@@ -64,8 +64,8 @@ class _JadwalShiftPageState extends State<JadwalShiftPage> {
 
   Future<void> _saveSchedule() async {
     final shifts = [];
-    final startDate = _selectedWeek.subtract(Duration(days: _selectedWeek.weekday - 1));
-    
+    _selectedWeek.subtract(Duration(days: _selectedWeek.weekday - 1));
+
     for (var employeeId in _schedule.keys) {
       for (var entry in _schedule[employeeId]!.entries) {
         if (entry.value != null) {
@@ -83,54 +83,73 @@ class _JadwalShiftPageState extends State<JadwalShiftPage> {
   }
 
   Widget _buildWeekSelector() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        CupertinoButton(
-          child: Icon(CupertinoIcons.chevron_left),
-          onPressed: () {
-            setState(() => _selectedWeek = _selectedWeek.subtract(Duration(days: 7)));
-            _loadData();
-          },
-        ),
-        Text(
-          DateFormat('dd MMM y').format(
-            _selectedWeek.subtract(Duration(days: _selectedWeek.weekday - 1)),
-          ) +
-              ' - ' +
-              DateFormat('dd MMM y').format(
-                _selectedWeek.add(Duration(days: 7 - _selectedWeek.weekday)),
-              ),
-          style: TextStyle(fontSize: 16),
-        ),
-        CupertinoButton(
-          child: Icon(CupertinoIcons.chevron_right),
-          onPressed: () {
-            setState(() => _selectedWeek = _selectedWeek.add(Duration(days: 7)));
-            _loadData();
-          },
-        ),
-      ],
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CupertinoButton(
+            padding: EdgeInsets.all(8),
+            child: Icon(CupertinoIcons.chevron_left, color: Colors.blue),
+            onPressed: () {
+              setState(() => _selectedWeek = _selectedWeek.subtract(Duration(days: 7)));
+              _loadData();
+            },
+          ),
+          Text(
+            DateFormat('dd MMM y').format(
+              _selectedWeek.subtract(Duration(days: _selectedWeek.weekday - 1)),
+            ) +
+                ' - ' +
+                DateFormat('dd MMM y').format(
+                  _selectedWeek.add(Duration(days: 7 - _selectedWeek.weekday)),
+                ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          CupertinoButton(
+            padding: EdgeInsets.all(8),
+            child: Icon(CupertinoIcons.chevron_right, color: Colors.blue),
+            onPressed: () {
+              setState(() => _selectedWeek = _selectedWeek.add(Duration(days: 7)));
+              _loadData();
+            },
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: CupertinoNavigationBar(
-        middle: Text('Atur Jadwal Shift'),
-        trailing: CupertinoButton(
-          child: Text('Simpan'),
-          onPressed: _saveSchedule,
-        ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Atur Jadwal Shift', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.save, color: Colors.white),
+            onPressed: _saveSchedule,
+          ),
+        ],
       ),
-      child: _isLoading
-          ? Center(child: CupertinoActivityIndicator())
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 _buildWeekSelector(),
                 Expanded(
                   child: ListView.builder(
+                    padding: EdgeInsets.all(8),
                     itemCount: _employees.length,
                     itemBuilder: (context, index) {
                       final employee = _employees[index];
@@ -166,16 +185,22 @@ class _EmployeeScheduleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dates = schedule.keys.toList()..sort();
-    
+
     return Card(
       margin: EdgeInsets.all(8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Padding(
         padding: EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(employee['display_name'],
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              employee['display_name'],
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             SizedBox(height: 8),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -214,12 +239,16 @@ class _DayShiftSelector extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 4),
       child: Column(
         children: [
-          Text(DateFormat('E').format(date), style: TextStyle(fontSize: 12)),
+          Text(
+            DateFormat('E').format(date),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
           SizedBox(height: 4),
           Container(
             width: 80,
             decoration: BoxDecoration(
-              border: Border.all(color: CupertinoColors.systemGrey),
+              color: Colors.grey[100],
+              border: Border.all(color: Colors.grey[300]!),
               borderRadius: BorderRadius.circular(8),
             ),
             child: CupertinoSlidingSegmentedControl<String>(

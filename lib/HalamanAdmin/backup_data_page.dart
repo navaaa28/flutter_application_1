@@ -1,13 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:excel/excel.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:permission_handler/permission_handler.dart';
 
+// Model untuk Absensi
 class Hadir {
   final String displayName;
   final String fotoUrl;
@@ -43,6 +42,58 @@ class Hadir {
     };
   }
 }
+
+// Model untuk Pegawai
+class Pegawai {
+  final String id;
+  final String displayName;
+  final String email;
+  final String phone;
+  final String role;
+  final String departemen;
+  final int salary;
+  final String profileUrl;
+
+  Pegawai({
+    required this.id,
+    required this.displayName,
+    required this.email,
+    required this.phone,
+    required this.role,
+    required this.departemen,
+    required this.salary,
+    required this.profileUrl,
+  });
+
+  factory Pegawai.fromJson(Map<String, dynamic> json) {
+  return Pegawai(
+    id: json['id'] ?? '',
+    displayName: json['display_name'] ?? 'N/A',
+    email: json['email'] ?? 'N/A',
+    phone: json['phone'] ?? 'N/A',
+    role: json['role'] ?? 'STAFF',
+    departemen: json['departemen'] ?? 'HR',
+    salary: (json['salary'] is int) ? json['salary'] : int.tryParse(json['salary'].toString()) ?? 0,
+    profileUrl: json['profile_url'] ?? '',
+  );
+}
+
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'display_name': displayName,
+      'email': email,
+      'phone': phone,
+      'role': role,
+      'departemen': departemen,
+      'salary': salary,
+      'profile_url': profileUrl,
+    };
+  }
+}
+
+// Model untuk Backup Data
 class BackupData<T> {
   final int version;
   final List<T> items;
@@ -67,330 +118,297 @@ class BackupData<T> {
   }
 }
 
+// Service untuk Backup
 class BackupService {
+  // Backup Absensi sebagai JSON
   static Future<File> saveBackupHadir(List<Hadir> items) async {
-    try {
-      final directory = await getExternalStorageDirectory();
-      if (directory == null) {
-        throw Exception('Tidak dapat mengakses penyimpanan eksternal');
-      }
+    final backupData = BackupData<Hadir>(items: items);
+    final jsonData = backupData.toJson((item) => item.toJson());
 
-      final downloadDir = Directory('${directory.path}/Download');
-      if (!await downloadDir.exists()) {
-        await downloadDir.create(recursive: true);
-      }
-
-      final backupData = BackupData<Hadir>(items: items);
-      final jsonData = backupData.toJson((item) => item.toJson());
-
-      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final file = File('${downloadDir.path}/attendance_backup_$timestamp.json');
-
-      return await file.writeAsString(json.encode(jsonData));
-    } catch (e) {
-      throw Exception('Gagal menyimpan backup: $e');
+    final downloadDir = Directory('/storage/emulated/0/Download');
+    if (!await downloadDir.exists()) {
+      await downloadDir.create(recursive: true);
     }
+
+    final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+    final file = File('${downloadDir.path}/attendance_backup_$timestamp.json');
+
+    return file.writeAsString(json.encode(jsonData));
   }
 
+  // Backup Absensi sebagai Excel
+  static Future<File> saveBackupHadirAsExcel(List<Hadir> items) async {
+    final excel = Excel.createExcel();
+    final sheet = excel['Sheet1'];
+
+    // Header
+    sheet.appendRow(['Nama', 'Tanggal', 'Lokasi', 'Status']);
+
+    // Data
+    for (var attendance in items) {
+      sheet.appendRow([
+        attendance.displayName,
+        attendance.tanggal,
+        attendance.lokasi,
+        attendance.jenisAbsen == "masuk" ? "Masuk" : "Keluar",
+      ]);
+    }
+
+    final downloadDir = Directory('/storage/emulated/0/Download');
+    final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+    final file = File('${downloadDir.path}/attendance_backup_$timestamp.xlsx');
+
+    await file.writeAsBytes(excel.encode()!);
+    return file;
+  }
+
+  // Backup Absensi sebagai PDF
   static Future<File> saveBackupHadirAsPdf(List<Hadir> items) async {
-    try {
-      final pdfDocument = pw.Document();
-      final font = await pw.Font.courier();
+    final pdfDocument = pw.Document();
 
-      pdfDocument.addPage(
-        pw.Page(
-          build: (pw.Context context) {
-            return pw.Column(
-              children: [
-                pw.Text('Laporan Absensi',
-                    style: pw.TextStyle(fontSize: 24, font: font)),
-                pw.SizedBox(height: 20),
-                ...items.map((attendance) {
-                  return pw.Padding(
-                    padding: const pw.EdgeInsets.only(bottom: 8),
-                    child: pw.Text(
-                      'Nama: ${attendance.displayName}\n'
-                      'Tanggal: ${_formatPdfDate(attendance.tanggal)}\n'
-                      'Lokasi: ${attendance.lokasi}\n'
-                      'Status: ${attendance.jenisAbsen == "masuk" ? "Masuk" : "Keluar"}\n'
-                      '----------------------------------------',
-                      style: pw.TextStyle(fontSize: 12, font: font),
-                    ),
-                  );
-                }).toList(),
-              ],
-            );
-          },
-        ),
-      );
+    pdfDocument.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            children: [
+              pw.Text('Attendance Backup', style: pw.TextStyle(fontSize: 24)),
+              ...items.map((attendance) {
+                return pw.Text(
+                  'Name: ${attendance.displayName}, Date: ${attendance.tanggal}, Location: ${attendance.lokasi}, Status: ${attendance.jenisAbsen == "masuk" ? "Masuk" : "Keluar"}',
+                  style: pw.TextStyle(fontSize: 12),
+                );
+              }).toList(),
+            ],
+          );
+        },
+      ),
+    );
 
-      final directory = await getExternalStorageDirectory();
-      if (directory == null) {
-        throw Exception('Tidak dapat mengakses penyimpanan eksternal');
-      }
+    final downloadDir = Directory('/storage/emulated/0/Download');
+    final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+    final file = File('${downloadDir.path}/attendance_backup_$timestamp.pdf');
 
-      final downloadDir = Directory('${directory.path}/Download');
-      if (!await downloadDir.exists()) {
-        await downloadDir.create(recursive: true);
-      }
-
-      final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final file = File('${downloadDir.path}/attendance_backup_$timestamp.pdf');
-
-      await file.writeAsBytes(await pdfDocument.save());
-      return file;
-    } catch (e) {
-      throw Exception('Gagal membuat PDF: $e');
-    }
+    await file.writeAsBytes(await pdfDocument.save());
+    return file;
   }
 
-  static String _formatPdfDate(String dateString) {
-    try {
-      DateTime date = DateTime.parse(dateString);
-      return DateFormat('dd-MMM-yyyy HH:mm').format(date);
-    } catch (e) {
-      return dateString;
+  // Backup Pegawai sebagai JSON
+  static Future<File> saveBackupPegawai(List<Pegawai> items) async {
+    final backupData = BackupData<Pegawai>(items: items);
+    final jsonData = backupData.toJson((item) => item.toJson());
+
+    final downloadDir = Directory('/storage/emulated/0/Download');
+    final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+    final file = File('${downloadDir.path}/pegawai_backup_$timestamp.json');
+
+    return file.writeAsString(json.encode(jsonData));
+  }
+
+  // Backup Pegawai sebagai Excel
+  static Future<File> saveBackupPegawaiAsExcel(List<Pegawai> items) async {
+    final excel = Excel.createExcel();
+    final sheet = excel['Sheet1'];
+
+    // Header
+    sheet.appendRow(['ID', 'Nama', 'Email', 'Telepon', 'Role', 'Departemen', 'Gaji']);
+
+    // Data
+    for (var pegawai in items) {
+      sheet.appendRow([
+        pegawai.id,
+        pegawai.displayName,
+        pegawai.email,
+        pegawai.phone,
+        pegawai.role,
+        pegawai.departemen,
+        pegawai.salary.toString(),
+      ]);
     }
+
+    final downloadDir = Directory('/storage/emulated/0/Download');
+    final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+    final file = File('${downloadDir.path}/pegawai_backup_$timestamp.xlsx');
+
+    await file.writeAsBytes(excel.encode()!);
+    return file;
+  }
+
+  // Backup Pegawai sebagai PDF
+  static Future<File> saveBackupPegawaiAsPdf(List<Pegawai> items) async {
+    final pdfDocument = pw.Document();
+
+    pdfDocument.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            children: [
+              pw.Text('Daftar Pegawai', style: pw.TextStyle(fontSize: 24)),
+              ...items.map((pegawai) {
+                return pw.Text(
+                  'ID: ${pegawai.id}, Nama: ${pegawai.displayName}, Email: ${pegawai.email}, Role: ${pegawai.role}',
+                  style: pw.TextStyle(fontSize: 12),
+                );
+              }).toList(),
+            ],
+          );
+        },
+      ),
+    );
+
+    final downloadDir = Directory('/storage/emulated/0/Download');
+    final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+    final file = File('${downloadDir.path}/pegawai_backup_$timestamp.pdf');
+
+    await file.writeAsBytes(await pdfDocument.save());
+    return file;
   }
 }
 
-class HadirPage extends StatefulWidget {
-  @override
-  _HadirPageState createState() => _HadirPageState();
-}
-
-class _HadirPageState extends State<HadirPage> {
-  Map<String, List<Hadir>> groupedAttendance = {};
-  bool isLoading = true;
-  final _supabase = Supabase.instance.client;
-
-  Future<void> _requestPermissions() async {
-    final status = await Permission.storage.request();
-    if (!status.isGranted) {
-      throw Exception('Izin penyimpanan ditolak');
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    fetchActivities();
-  }
-
-  Future<void> fetchActivities() async {
-    try {
-      final response = await _supabase
-          .from('absensi')
-          .select()
-          .order('tanggal', ascending: false);
-
-      final Map<String, List<Hadir>> groupedData = {};
-      for (var record in response) {
-        final jenisAbsen = record['jenis_absen']?.toString().toUpperCase() ?? 'LAINNYA';
-        final attendance = Hadir.fromJson(record);
-
-        groupedData.putIfAbsent(jenisAbsen, () => []);
-        groupedData[jenisAbsen]!.add(attendance);
-      }
-
-      setState(() {
-        groupedAttendance = groupedData;
-        isLoading = false;
-      });
-    } catch (e) {
-      print('Error fetching activities: $e');
-      setState(() => isLoading = false);
-    }
-  }
-
-  String formatDate(String dateString) {
-    try {
-      DateTime date = DateTime.parse(dateString);
-      return DateFormat('dd MMM yyyy, HH:mm').format(date);
-    } catch (e) {
-      return 'Tanggal tidak valid';
-    }
-  }
-
-  Future<void> _saveAsPdf() async {
-    try {
-      await _requestPermissions();
-      await BackupService.saveBackupHadirAsPdf(
-          groupedAttendance.values.expand((x) => x).toList());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Backup PDF berhasil disimpan di folder Download!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    }
-  }
-
-  Future<void> _saveAsJson() async {
-    try {
-      await _requestPermissions();
-      await BackupService.saveBackupHadir(
-          groupedAttendance.values.expand((x) => x).toList());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Backup JSON berhasil disimpan di folder Download!')),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
-    }
-  }
+// Halaman Backup Data
+class BackupDataPage extends StatelessWidget {
+  const BackupDataPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Semua Data Absensi', 
-               style: GoogleFonts.poppins(color: Colors.white)),
+        title: Text('Backup Data', style: GoogleFonts.poppins(color: Colors.white)),
         backgroundColor: Colors.blue,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.save_alt),
-            onPressed: _saveAsJson,
-            tooltip: 'Simpan sebagai JSON',
-          ),
-          IconButton(
-            icon: const Icon(Icons.picture_as_pdf),
-            onPressed: _saveAsPdf,
-            tooltip: 'Simpan sebagai PDF',
-          ),
-        ],
       ),
-      body: _buildBody(),
-    );
-  }
-      Widget _buildBody() {
-    if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    
-    if (groupedAttendance.isEmpty) {
-      return Center(
-        child: Text(
-          "Tidak ada data absensi",
-          style: GoogleFonts.poppins(color: Colors.grey),
-        ),
-      );
-    }
-    
-    return ListView(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            "Daftar Absensi Karyawan",
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-            ),
-          ),
-        ),
-        ...groupedAttendance.entries.map((entry) => _buildAttendanceGroup(entry)),
-      ],
-    );
-  }
-
-  Widget _buildAttendanceGroup(MapEntry<String, List<Hadir>> entry) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Colors.blue[50],
-          child: Text(
-            'ABSEN ${entry.key}',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w600,
-              color: Colors.blue[800],
-              fontSize: 14,
-            ),
-          ),
-        ),
-        ...entry.value.map((attendance) => _buildAttendanceCard(attendance)),
-      ],
-    );
-  }
-
-  Widget _buildAttendanceCard(Hadir attendance) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Colors.grey[300]!),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        leading: CircleAvatar(
-          radius: 25,
-          backgroundColor: Colors.grey[200],
-          backgroundImage: attendance.fotoUrl.isNotEmpty
-              ? NetworkImage('https://twthndrmrdkhtvgodqae.supabase.co/storage/v1/object/public/${attendance.fotoUrl}')
-              : null,
-          child: attendance.fotoUrl.isEmpty
-              ? Icon(Icons.person, color: Colors.grey[500])
-              : null,
-        ),
-        title: Text(
-          attendance.displayName,
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 4),
-            Text(
-              formatDate(attendance.tanggal),
-              style: GoogleFonts.poppins(
-                color: Colors.grey[600],
-                fontSize: 12,
-              ),
+            // Backup Absensi
+            _buildBackupSection(
+              context,
+              title: 'Backup Data Absensi',
+              onJson: () => _backupAbsensiJson(context),
+              onExcel: () =>_backupAbsensiExcel(context),
+              onPdf: () => _backupAbsensiPdf(context),
             ),
-            Text(
-              attendance.lokasi,
-              style: GoogleFonts.poppins(
-                color: Colors.grey[600],
-                fontSize: 12,
-              ),
+            SizedBox(height: 20),
+            // Backup Pegawai
+            _buildBackupSection(
+              context,
+              title: 'Backup Data Pegawai',
+              onJson: () =>_backupPegawaiJson(context),
+              onExcel: () =>_backupPegawaiExcel(context),
+              onPdf: () =>_backupPegawaiPdf(context),
             ),
           ],
         ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: attendance.jenisAbsen == 'masuk' 
-                 ? Colors.green[50] 
-                 : Colors.red[50],
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Text(
-            attendance.jenisAbsen == 'masuk' ? 'MASUK' : 'KELUAR',
-            style: GoogleFonts.poppins(
-              color: attendance.jenisAbsen == 'masuk' 
-                   ? Colors.green[800] 
-                   : Colors.red[800],
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  Widget _buildBackupSection(
+    BuildContext context, {
+    required String title,
+    required VoidCallback onJson,
+    required VoidCallback onExcel,
+    required VoidCallback onPdf,
+  }) {
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.insert_drive_file, color: Colors.green),
+                  onPressed: onJson,
+                  tooltip: 'Simpan sebagai JSON',
+                ),
+                IconButton(
+                  icon: Icon(Icons.table_chart, color: Colors.blue),
+                  onPressed: onExcel,
+                  tooltip: 'Simpan sebagai Excel',
+                ),
+                IconButton(
+                  icon: Icon(Icons.picture_as_pdf, color: Colors.red),
+                  onPressed: onPdf,
+                  tooltip: 'Simpan sebagai PDF',
+                ),
+              ],
             ),
-          ),
+          ],
         ),
       ),
     );
   }
+
+  Future<void> _backupAbsensiJson(BuildContext context) async {
+  final supabase = Supabase.instance.client;
+  final response = await supabase.from('absensi').select().order('tanggal', ascending: false);
+  final absensiList = response.map((e) => Hadir.fromJson(e)).toList();
+
+  await BackupService.saveBackupHadir(absensiList);
+  _showSnackbar(context, 'Backup absensi JSON berhasil!');
 }
 
-void main() {
+
+  Future<void> _backupAbsensiExcel(BuildContext context) async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase.from('absensi').select().order('tanggal', ascending: false);
+    final absensiList = response.map((e) => Hadir.fromJson(e)).toList();
+
+    await BackupService.saveBackupHadirAsExcel(absensiList);
+    _showSnackbar(context, 'Backup absensi Excel berhasil!');
+  }
+
+  Future<void> _backupAbsensiPdf(BuildContext context) async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase.from('absensi').select().order('tanggal', ascending: false);
+    final absensiList = response.map((e) => Hadir.fromJson(e)).toList();
+
+    await BackupService.saveBackupHadirAsPdf(absensiList);
+    _showSnackbar(context, 'Backup absensi PDF berhasil!');
+  }
+
+  // Fungsi Backup Pegawai
+  Future<void> _backupPegawaiJson(BuildContext context) async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase.from('users').select().neq('role', 'admin');
+    final pegawaiList = response.map((e) => Pegawai.fromJson(e)).toList();
+
+    await BackupService.saveBackupPegawai(pegawaiList);
+    _showSnackbar(context, 'Backup pegawai JSON berhasil!');
+  }
+
+  Future<void> _backupPegawaiExcel(BuildContext context) async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase.from('users').select().neq('role', 'admin');
+    final pegawaiList = response.map((e) => Pegawai.fromJson(e)).toList();
+
+    await BackupService.saveBackupPegawaiAsExcel(pegawaiList);
+    _showSnackbar(context, 'Backup pegawai Excel berhasil!');
+  }
+
+  Future<void> _backupPegawaiPdf(BuildContext context) async {
+    final supabase = Supabase.instance.client;
+    final response = await supabase.from('users').select().neq('role', 'admin');
+    final pegawaiList = response.map((e) => Pegawai.fromJson(e)).toList();
+
+    await BackupService.saveBackupPegawaiAsPdf(pegawaiList);
+    _showSnackbar(context, 'Backup pegawai PDF berhasil!');
+  }
+
+  void _showSnackbar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+  void main() {
   runApp(MaterialApp(
-    home: HadirPage(),
+    home: BackupDataPage(),
   ));
+}
 }

@@ -35,6 +35,7 @@ class _GajiPageState extends State<GajiPage> {
 
       print("Response from Supabase: $response"); // Debug: Response data
 
+      // ignore: unnecessary_null_comparison
       if (response != null) {
         setState(() {
           selectedSalary = response['salary']?.toString() ?? '0';

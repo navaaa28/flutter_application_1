@@ -24,6 +24,60 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
       colors: [Color(0xFF2A2D7C), Color(0xFF00C2FF)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight);
+  String? selectedType;
+  List<String> types = ['Izin', 'Cuti', 'Sakit'];
+
+  void _showTypePicker(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return Container(
+          height: 200,
+          color: Colors.white,
+          child: Column(
+            children: [
+              SizedBox(
+                height: 100,
+                child: CupertinoPicker(
+                  itemExtent: 40,
+                  onSelectedItemChanged: (int index) {
+                    setState(() {
+                      selectedType = types[index];
+                    });
+                  },
+                  children: types.map((String type) {
+                    return Center(
+                      child: Text(
+                        type,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          color: primaryColor,
+                          decoration: TextDecoration.none,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  CupertinoButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Batal'),
+                  ),
+                  CupertinoButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Pilih'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -125,59 +179,75 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
 
   // Kirim form dan animasi notifikasi sukses
   Future<void> _submitForm() async {
-    if (selectedStartDate == null ||
-        selectedEndDate == null ||
-        reasonController.text.isEmpty) {
-      _showDialog(
-          'Form Tidak Lengkap', 'Harap mengisi semua kolom yang diperlukan.');
-      return;
-    }
-
-    final user = supabase.auth.currentUser;
-    if (user == null) {
-      _showDialog('Tidak Masuk', 'Silakan masuk untuk mengirim form.');
-      return;
-    }
-
-    final formattedStartDate = selectedStartDate!.toIso8601String();
-    final formattedEndDate = selectedEndDate!.toIso8601String();
-
-    try {
-      await supabase.from('izin_cuti').insert({
-        'user_id': user.id,
-        'tanggal_mulai': formattedStartDate,
-        'tanggal_selesai': formattedEndDate,
-        'alasan': reasonController.text,
-        'departemen': role,
-        'kontak_darurat': contactController.text,
-        'display_name': displayName,
-        'status': 'Menunggu Persetujuan Atasan',
-      });
-
-      // Animasi transisi sukses
-      _showDialog('Berhasil',
-          'Form izin/cuti berhasil dikirim. Menunggu persetujuan admin.',
-          isSuccess: true);
-    } catch (e) {
-      _showDialog('Gagal', 'Terjadi kesalahan: ${e.toString()}');
-    }
+  if (selectedStartDate == null ||
+      selectedEndDate == null ||
+      reasonController.text.isEmpty ||
+      selectedType == null) { // Tambahkan validasi untuk tipe izin
+    _showDialog(
+        'Form Tidak Lengkap', 'Harap mengisi semua kolom yang diperlukan.');
+    return;
   }
 
-  // Menampilkan dialog dengan transisi animasi
+  final user = supabase.auth.currentUser;
+  if (user == null) {
+    _showDialog('Tidak Masuk', 'Silakan masuk untuk mengirim form.');
+    return;
+  }
+
+  final formattedStartDate = selectedStartDate!.toIso8601String();
+  final formattedEndDate = selectedEndDate!.toIso8601String();
+
+  try {
+    await supabase.from('izin_cuti').insert({
+      'user_id': user.id,
+      'tanggal_mulai': formattedStartDate,
+      'tanggal_selesai': formattedEndDate,
+      'alasan': reasonController.text,
+      'departemen': role,
+      'kontak_darurat': contactController.text,
+      'display_name': displayName,
+      'status': 'Menunggu Persetujuan Atasan',
+      'tipe_izin': selectedType, // Tambahkan tipe izin
+    });
+
+    // Animasi transisi sukses
+    _showDialog('Berhasil',
+        'Form izin/cuti berhasil dikirim. Menunggu persetujuan admin.',
+        isSuccess: true);
+  } catch (e) {
+    _showDialog('Gagal', 'Terjadi kesalahan: ${e.toString()}');
+  }
+}
+
   void _showDialog(String title, String content, {bool isSuccess = false}) {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
-          title: Text(title),
-          content: Text(content),
+          title: Text(
+            title,
+            style: GoogleFonts.poppins(
+              decoration: TextDecoration.none,
+            ),
+          ),
+          content: Text(
+            content,
+            style: GoogleFonts.poppins(
+              decoration: TextDecoration.none,
+            ),
+          ),
           actions: [
             CupertinoDialogAction(
               onPressed: () {
                 Navigator.pop(context);
                 if (isSuccess) Navigator.pop(context);
               },
-              child: const Text('OK'),
+              child: Text(
+                'OK',
+                style: GoogleFonts.poppins(
+                  decoration: TextDecoration.none,
+                ),
+              ),
             ),
           ],
         );
@@ -194,6 +264,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
+            decoration: TextDecoration.none,
           ),
         ),
         backgroundColor: primaryColor,
@@ -228,6 +299,57 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
     );
   }
 
+  Widget _buildTypeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tipe Izin',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
+          ),
+        ),
+        SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => _showTypePicker(context),
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Pilih Tipe Izin',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+                Text(
+                  selectedType ?? 'Pilih',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: selectedType != null ? primaryColor : Colors.grey[400],
+                    fontWeight: FontWeight.w500,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildHeaderSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,6 +360,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
             fontSize: 24,
             fontWeight: FontWeight.w700,
             color: primaryColor,
+            decoration: TextDecoration.none,
           ),
         ),
         Text(
@@ -245,6 +368,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey[600],
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -284,6 +408,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey[600],
+            decoration: TextDecoration.none,
           ),
         ),
         Text(
@@ -292,6 +417,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
             fontSize: 14,
             fontWeight: FontWeight.w500,
             color: primaryColor,
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -314,6 +440,8 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
       ),
       child: Column(
         children: [
+          _buildTypeSection(),
+          SizedBox(height: 20),
           _buildDatePickerSection(),
           SizedBox(height: 20),
           _buildReasonSection(),
@@ -361,6 +489,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 color: Colors.grey[600],
+                decoration: TextDecoration.none,
               ),
             ),
             Text(
@@ -371,6 +500,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
                 fontSize: 14,
                 color: date != null ? primaryColor : Colors.grey[400],
                 fontWeight: FontWeight.w500,
+                decoration: TextDecoration.none,
               ),
             ),
           ],
@@ -389,13 +519,17 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
             fontSize: 14,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 8),
         CupertinoTextField(
           controller: reasonController,
           placeholder: 'Masukkan alasan lengkap...',
-          style: GoogleFonts.poppins(fontSize: 14),
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            decoration: TextDecoration.none,
+          ),
           padding: EdgeInsets.all(16),
           maxLines: 4,
           decoration: BoxDecoration(
@@ -407,6 +541,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
             fontSize: 14,
             color: Colors.grey[400],
             fontStyle: FontStyle.italic,
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -423,13 +558,17 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
             fontSize: 14,
             color: Colors.grey[600],
             fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 8),
         CupertinoTextField(
           controller: contactController,
           placeholder: 'Masukkan kontak darurat...',
-          style: GoogleFonts.poppins(fontSize: 14),
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            decoration: TextDecoration.none,
+          ),
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.grey[50],
@@ -440,6 +579,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
             fontSize: 14,
             color: Colors.grey[400],
             fontStyle: FontStyle.italic,
+            decoration: TextDecoration.none,
           ),
         ),
       ],
@@ -469,6 +609,7 @@ class _IzinCutiPageState extends State<IzinCutiPage> {
             fontSize: 16,
             fontWeight: FontWeight.w600,
             color: Colors.white,
+            decoration: TextDecoration.none,
           ),
         ),
       ),

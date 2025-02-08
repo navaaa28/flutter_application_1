@@ -5,17 +5,17 @@ import 'package:flutter_application_1/HalamanAdmin/admincalenderpage.dart';
 import 'package:flutter_application_1/HalamanAdmin/hadir.dart';
 import 'package:flutter_application_1/HalamanAdmin/izincutiadmin.dart';
 import 'package:flutter_application_1/HalamanAdmin/jadwal_shift_page.dart';
+import 'package:flutter_application_1/HalamanAdmin/lemburan.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'daftar_pegawai_page.dart';
-import 'package:flutter/rendering.dart';
 import 'dart:math' as math;
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
-  
 
   @override
+  // ignore: library_private_types_in_public_api
   _AdminDashboardState createState() => _AdminDashboardState();
 }
 
@@ -24,6 +24,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   int _selectedIndex = 0;
   int totalPegawai = 0;
   int totalIzin = 0;
+  int totalLembur = 0;
+  int totalSakit = 0;
   int totalHadir = 0;
   int totalTerlmbat = 0;
   bool isLoading = false;
@@ -40,6 +42,26 @@ class _AdminDashboardState extends State<AdminDashboard> {
     await _fetchTotalIzin();
     await _fetchTotalTerlambat();
     await _fetchUsername();
+    await _fetchSakit();
+    await _fetchLembur();
+  }
+
+  Future<void> _fetchSakit() async {
+    setState(() => isLoading = true);
+    try {
+      final response = await Supabase.instance.client
+          .from('izin_cuti')
+          .select('display_name')
+          .eq('tipe_izin', 'Sakit');
+
+      setState(() {
+        totalSakit = response.length;
+      });
+    } catch (e) {
+      _showErrorDialog('Gagal memuat total izin: $e');
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
   Future<void> _fetchUsername() async {
@@ -47,7 +69,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final user = supabase.auth.currentUser;
 
     if (user == null) {
-      print('User not logged in');
       return;
     }
 
@@ -60,15 +81,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
       setState(() {
         username = response['display_name'] ?? "Pengguna";
       });
+    // ignore: empty_catches
     } catch (e) {
-      print('Error fetching profile image: $e');
     }
   }
-  
 
   Future<void> _fetchTotalTerlambat() async {
     setState(() => isLoading = true);
-    final supabase = await Supabase.instance.client;
+    final supabase = Supabase.instance.client;
     try {
       final response =
           await supabase.from('absensi').select().eq('status', 'Terlambat');
@@ -106,14 +126,32 @@ class _AdminDashboardState extends State<AdminDashboard> {
     try {
       final response = await Supabase.instance.client
           .from('users')
-          .select('id')
-          .eq('role', 'pegawai');
+          .select('display_name')
+          .neq('role', 'admin');
 
       setState(() {
         totalPegawai = response.length;
       });
     } catch (e) {
       _showErrorDialog('Gagal memuat total pegawai: $e');
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _fetchLembur() async {
+    setState(() => isLoading = true);
+    try {
+      final response = await Supabase.instance.client
+          .from('lembur')
+          .select('display_name')
+          .eq('status', 'Menunggu Persetujuan Atasan');
+
+      setState(() {
+        totalLembur = response.length;
+      });
+    } catch (e) {
+      _showErrorDialog('Gagal memuat total izin: $e');
     } finally {
       setState(() => isLoading = false);
     }
@@ -175,7 +213,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           setState(() => _selectedIndex = index);
           if (index == 0) await _fetchData();
         },
-        backgroundColor: primaryColor,
+      backgroundColor: primaryColor,
         activeColor: Colors.white,
         inactiveColor: Colors.white70,
         items: [
@@ -251,7 +289,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
       case 2:
         return PegawaiScreen();
       case 3:
-        return AdminProfileTab(informasi: () {  },);
+        return AdminProfileTab(
+          informasi: () {},
+        );
       default:
         return Container();
     }
@@ -289,21 +329,19 @@ class _AdminDashboardState extends State<AdminDashboard> {
         Text(
           DateFormat('EEEE, d MMMM y').format(DateTime.now()),
           style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            decoration:TextDecoration.none
-          ),
+              color: Colors.grey.shade600,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              decoration: TextDecoration.none),
         ),
         Text(
           "Selamat Datang, $username",
           style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            color: Color(0xFF2D2F3A),
-            letterSpacing: 0.5,
-            decoration:TextDecoration.none
-          ),
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF2D2F3A),
+              letterSpacing: 0.5,
+              decoration: TextDecoration.none),
         ),
       ],
     );
@@ -319,7 +357,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         mainAxisSpacing: 15,
         childAspectRatio: 1.2,
       ),
-      itemCount: 7,
+      itemCount: 8,
       itemBuilder: (context, index) {
         final List<Map<String, dynamic>> cards = [
           {
@@ -337,7 +375,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             'onTap': () => _navigateTo(context, IzinCutiAdminPage()),
           },
           {
-            'value': 10,
+            'value': totalSakit,
             'label': 'Sakit',
             'color': Color(0xFFFF6B6B),
             'icon': CupertinoIcons.heart_slash_fill,
@@ -358,12 +396,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
             'onTap': () {},
           },
           {
-            'value': '',
-            'label': 'Kalender Event',
-            'color': accent,
-            'icon': CupertinoIcons.calendar,
-            'onTap': () => _navigateTo(context, AdminCalendarPage()),
-          },
+            'value': totalLembur,
+            'label': 'Lemburan',
+            'color': Color.fromARGB(255, 0, 255, 38),
+            'icon': CupertinoIcons.calendar_today,
+            'onTap': () => _navigateTo(context, LemburanPage()),
+          },          
           {
             'value': '',
             'label': 'Jadwal Pegawai',
@@ -371,8 +409,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
             'icon': CupertinoIcons.calendar_circle,
             'onTap': () => _navigateTo(context, JadwalShiftPage()),
           },
+          {
+            'value': '',
+            'label': 'Kalender Event',
+            'color': accent,
+            'icon': CupertinoIcons.calendar,
+            'onTap': () => _navigateTo(context, AdminCalendarPage()),
+          },
         ];
-
         return _buildDashboardCard(cards[index], index);
       },
     );
@@ -438,19 +482,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           Text(
                             data['value'].toString(),
                             style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w800,
-                              color: data['color'],
-                              decoration:TextDecoration.none
-                            ),
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                color: data['color'],
+                                decoration: TextDecoration.none),
                           ),
                           Text(
                             data['label'],
                             style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey.shade600,
-                              decoration:TextDecoration.none
-                            ),
+                                fontSize: 16,
+                                color: Colors.grey.shade600,
+                                decoration: TextDecoration.none),
                           ),
                         ],
                       )
@@ -483,11 +525,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   void _navigateTo(BuildContext context, Widget page) async {
-  await Navigator.push(
-    context,
-    CupertinoPageRoute(builder: (context) => page),
-  );
-  _fetchData(); // Pastikan ini tetap dipanggil setelah kembali dari navigasi
-}
-
+    await Navigator.push(
+      context,
+      CupertinoPageRoute(builder: (context) => page),
+    );
+    _fetchData(); // Pastikan ini tetap dipanggil setelah kembali dari navigasi
+  }
 }

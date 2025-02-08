@@ -27,6 +27,7 @@ class _HomeTabState extends State<HomeTab> {
   String? profileImageUrl;
   String? departemen;
   String? shift;
+  String displayName = '';
   bool isDarkMode = false;
   final Color primaryColor = Color(0xFF2A2D7C);
   final Color accentColor = Color(0xFF00C2FF);
@@ -40,41 +41,74 @@ class _HomeTabState extends State<HomeTab> {
   @override
   void initState() {
     super.initState();
-    fetchUserProfile();
-    fetchAttendanceData();
-    setupRealtimeListener();
-    fetchIncompleteTodos();
-    fetchJadwalShift();
+    _fetchData();
+    _fetchDisplayName();
+  }
+
+  Future<void> _fetchDisplayName() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      print('User not logged in');
+      return;
+    }
+
+    try {
+      final response = await supabase
+          .from('users')
+          .select('display_name')
+          .eq('id', user.id)
+          .single();
+      setState(() {
+        displayName = response['display_name'];
+      });
+    } catch (e) {
+      print('$e');
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    await fetchAttendanceData();
+    await fetchUserProfile();
+    await fetchIncompleteTodos();
+    await fetchJadwalShift();
+    await _fetchDisplayName();
   }
 
   Future<void> fetchJadwalShift() async {
-  final supabase = Supabase.instance.client;
-  final user = supabase.auth.currentUser;
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
 
-  if (user == null) {
-    print('User not logged in');
-    return;
+    if (user == null) {
+      print('User not logged in');
+      return;
+    }
+
+    try {
+      // Ambil tanggal hari ini dalam format YYYY-MM-DD
+      String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      final response = await supabase
+          .from('jadwal_shift')
+          .select('shift')
+          .eq('user_id', user.id)
+          .eq('tanggal', today)
+          .maybeSingle();
+
+      setState(() {
+        shift = response != null ? response['shift'] : 'Libur!!!';
+      });
+    } catch (e) {
+      print('Error fetching shift: $e');
+    }
   }
-
-  try {
-    // Ambil tanggal hari ini dalam format YYYY-MM-DD
-    String today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-
-    final response = await supabase
-        .from('jadwal_shift')
-        .select('shift')
-        .eq('user_id', user.id)
-        .eq('tanggal', today)
-        .maybeSingle();
-
-    setState(() {
-      shift = response != null ? response['shift'] : 'Tidak Ada Shift';
-    });
-  } catch (e) {
-    print('Error fetching shift: $e');
-  }
-}
-
 
   Future<void> fetchIncompleteTodos() async {
     final supabase = Supabase.instance.client;
@@ -103,6 +137,7 @@ class _HomeTabState extends State<HomeTab> {
   }
 
   void showTodoPopup(List todos) {
+    // ignore: unnecessary_null_comparison
     if (context == null) return;
 
     showDialog(
@@ -359,7 +394,6 @@ class _HomeTabState extends State<HomeTab> {
       return;
     }
 
-    // Listen to attendance changes
     supabase
         .from('absensi')
         .stream(primaryKey: ['id'])
@@ -370,7 +404,6 @@ class _HomeTabState extends State<HomeTab> {
           fetchAttendanceData();
         });
 
-    // Listen to user profile changes (profile_url & username updates)
     supabase
         .from('users')
         .stream(primaryKey: ['id'])
@@ -387,10 +420,8 @@ class _HomeTabState extends State<HomeTab> {
     return DateFormat('HH:mm, dd MMM yyyy').format(date);
   }
 
-  void toggleDarkMode() {
-    setState(() {
-      isDarkMode = !isDarkMode;
-    });
+  Future<void> _onRefresh() async {
+    await _fetchData();
   }
 
   @override
@@ -405,239 +436,233 @@ class _HomeTabState extends State<HomeTab> {
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       home: Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 180.0,
-              floating: false,
-              pinned: true,
-              flexibleSpace: FlexibleSpaceBar(
-                title: Text(
-                  'Dashboard',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black26,
-                        blurRadius: 4,
-                        offset: Offset(1, 1),
-                      )
-                    ],
+        body: RefreshIndicator(
+          onRefresh: _onRefresh,
+          child: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 180.0,
+                floating: false,
+                pinned: true,
+                flexibleSpace: FlexibleSpaceBar(
+                  title: Text(
+                    'Dashboard',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: Offset(1, 1),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: primaryGradient,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: Opacity(
-                      opacity: 0.1,
-                      child: Icon(
-                        Icons.dashboard_rounded,
-                        size: 150,
-                        color: Colors.white,
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: primaryGradient,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Align(
+                      alignment: Alignment.bottomRight,
+                      child: Opacity(
+                        opacity: 0.1,
+                        child: Icon(
+                          Icons.dashboard_rounded,
+                          size: 150,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-              actions: [
-                Padding(
-                  padding: EdgeInsets.only(right: 16),
-                  child: IconButton(
-                    icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                        color: Colors.white),
-                    onPressed: toggleDarkMode,
-                  ),
-                ),
-              ],
-            ),
-            SliverList(
-              delegate: SliverChildListDelegate([
-                // Profile Card Section
-                Container(
-                  margin: EdgeInsets.all(16),
-                  child: Card(
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
+              SliverList(
+                delegate: SliverChildListDelegate([
+                  // Profile Card Section
+                  Container(
+                    margin: EdgeInsets.all(16),
+                    child: Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                        gradient: primaryGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: accentColor.withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: Offset(0, 10),
-                          ),
-                        ],
                       ),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: Colors.white, width: 2),
-                              ),
-                              child: CircleAvatar(
-                                radius: 28,
-                                backgroundColor: Colors.white,
-                                backgroundImage: profileImageUrl != null
-                                    ? NetworkImage(profileImageUrl!)
-                                    : AssetImage('images/logo.png')
-                                        as ImageProvider,
-                              ),
-                            ),
-                            SizedBox(width: 20),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Selamat Datang',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 18,
-                                      color: Colors.white.withOpacity(0.9),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    widget.username,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 22,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    departemen ?? 'Departemen Tidak Diketahui',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'Shift Hari Ini: $shift', // ✅ Interpolasi string yang benar
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 14,
-                                      color: Colors.white70,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: primaryGradient,
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentColor.withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: Offset(0, 10),
                             ),
                           ],
                         ),
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border:
+                                      Border.all(color: Colors.white, width: 2),
+                                ),
+                                child: CircleAvatar(
+                                  radius: 28,
+                                  backgroundColor: Colors.white,
+                                  backgroundImage: profileImageUrl != null
+                                      ? NetworkImage(profileImageUrl!)
+                                      : AssetImage('images/logo.png')
+                                          as ImageProvider,
+                                ),
+                              ),
+                              SizedBox(width: 20),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Selamat Datang',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 18,
+                                        color: Colors.white.withOpacity(0.9),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 6),
+                                    Text(
+                                      displayName,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 22,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'Departemen: $departemen' ??
+                                          'Departemen Tidak Diketahui',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'Shift Hari Ini: $shift Libur!!!', // ✅ Interpolasi string yang benar
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
 
-                // Attendance Card Section
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16),
-                  child: Card(
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
+                  // Attendance Card Section
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: 16),
+                    child: Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                        gradient: primaryGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: accentColor.withOpacity(0.3),
-                            blurRadius: 20,
-                            offset: Offset(0, 10),
-                          ),
-                        ],
                       ),
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildTimeColumn('Masuk', checkInTime),
-                            VerticalDivider(color: Colors.white54, width: 1),
-                            _buildTimeColumn('Selesai', checkOutTime),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          gradient: primaryGradient,
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentColor.withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: Offset(0, 10),
+                            ),
                           ],
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Grid Menu Section
-                Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 16),
-                        child: Text(
-                          'Quick Access',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            color: primaryColor,
-                            fontWeight: FontWeight.w600,
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _buildTimeColumn('Masuk', checkInTime),
+                              VerticalDivider(color: Colors.white54, width: 1),
+                              _buildTimeColumn('Selesai', checkOutTime),
+                            ],
                           ),
                         ),
                       ),
-                      GridView.count(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 20,
-                        mainAxisSpacing: 20,
-                        childAspectRatio: 0.9,
-                        children: [
-                          _buildMenuButton(
-                            CupertinoIcons.calendar,
-                            'Kalender',
-                            _showKalenderPage,
-                          ),
-                          _buildMenuButton(
-                            CupertinoIcons.square_list,
-                            'Aktivitas',
-                            _showActivityPage,
-                          ),
-                          _buildMenuButton(
-                            CupertinoIcons.clock,
-                            'To-Do List',
-                            _showTodoList,
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ]),
-            ),
-          ],
+
+                  // Grid Menu Section
+                  Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 16),
+                          child: Text(
+                            'Quick Access',
+                            style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              color: primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        GridView.count(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 20,
+                          mainAxisSpacing: 20,
+                          childAspectRatio: 0.9,
+                          children: [
+                            _buildMenuButton(
+                              CupertinoIcons.calendar,
+                              'Kalender',
+                              _showKalenderPage,
+                            ),
+                            _buildMenuButton(
+                              CupertinoIcons.square_list,
+                              'Aktivitas',
+                              _showActivityPage,
+                            ),
+                            _buildMenuButton(
+                              CupertinoIcons.clock,
+                              'To-Do List',
+                              _showTodoList,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ]),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -746,6 +771,7 @@ class _HomeTabState extends State<HomeTab> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildMenuItem(IconData icon, String label, {VoidCallback? onTap}) {
     return MouseRegion(
       cursor: SystemMouseCursors.click,

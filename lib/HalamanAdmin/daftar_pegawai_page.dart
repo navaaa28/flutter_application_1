@@ -33,7 +33,7 @@ class _PegawaiScreenState extends State<PegawaiScreen> {
       final response = await supabase
       .from('users')
       .select()
-      .neq('role', 'ADMIN') // Menampilkan selain ADMIN
+      .neq('role', 'admin')
       .order('display_name', ascending: true);
 
       setState(() {

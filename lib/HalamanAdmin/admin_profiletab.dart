@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/HalamanAdmin/admin_laporan_page.dart';
 import 'package:flutter_application_1/HalamanAdmin/audit_sistem_page.dart.dart';
 import 'package:flutter_application_1/HalamanAdmin/backup_data_page.dart';
 import 'package:flutter_application_1/HalamanAdmin/manajemen_departemen.dart';
@@ -14,15 +15,19 @@ class AdminProfileTab extends StatefulWidget {
   final VoidCallback informasi;
 
   const AdminProfileTab({
-    Key? key,
+    super.key,
     required this.informasi,
-  }) : super(key: key);
+  });
 
   @override
+  // ignore: library_private_types_in_public_api
   _AdminProfileTabState createState() => _AdminProfileTabState();
 }
 
 class _AdminProfileTabState extends State<AdminProfileTab> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   File? _image;
   String? _profileUrl;
   String _displayName = 'Admin';
@@ -40,7 +45,7 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
     super.initState();
     _fetchAdminProfile();
   }
-
+  
   Future<void> _fetchAdminProfile() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) return;
@@ -51,14 +56,12 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
         .eq('id', user.id)
         .single();
 
-    if (response != null) {
-      setState(() {
-        _profileUrl = response['profile_url'];
-        _displayName = response['display_name'] ?? 'Admin';
-        _role = response['role'] ?? 'admin';
-      });
+    setState(() {
+      _profileUrl = response['profile_url'];
+      _displayName = response['display_name'] ?? 'Admin';
+      _role = response['role'] ?? 'admin';
+    });
     }
-  }
 
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
@@ -129,6 +132,7 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
                       children: [
                         CircleAvatar(
                           radius: 60,
+                          // ignore: deprecated_member_use
                           backgroundColor: _primaryColor.withOpacity(0.1),
                           backgroundImage: _image != null
                               ? FileImage(_image!)
@@ -198,20 +202,20 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
                     onTap: () => _navigateTo(const ManajemenDepartemenPage()),
                   ),
                   _buildProfileMenuItem(
-                    icon: Icons.analytics,
-                    title: 'Analytics Sistem',
-                    onTap: () {},
+                    icon: Icons.edit_square,
+                    title: 'Edit Profil',
+                    onTap: () => _showEditProfileDialog(),
                   ),
                   _buildSectionTitle('Sistem'),
                   _buildProfileMenuItem(
                     icon: Icons.backup,
                     title: 'Backup Data',
-                    onTap: () => _navigateTo(HadirPage()),
+                    onTap: () => _navigateTo(BackupDataPage()),
                   ),
                   _buildProfileMenuItem(
-                    icon: Icons.security,
-                    title: 'Audit Sistem',
-                    onTap: () => _navigateTo(AuditSistemPage()),
+                    icon: Icons.report_problem,
+                    title: 'Daftar Laporan Masalah',
+                    onTap: () => _navigateTo(AdminLaporanPage()),
                   ),
                   _buildSectionTitle('Umum'),
                   _buildProfileMenuItem(
@@ -233,6 +237,140 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
         ),
       ),
     );
+  }
+
+  Future<String?> _uploadImage(String userId) async {
+    if (_image == null) return null;
+    try {
+      final fileExt = _image!.path.split('.').last;
+      final filePath = 'profile_pictures/$userId.$fileExt';
+
+      // Upload gambar ke Supabase Storage
+      await Supabase.instance.client.storage.from('profile_pictures').upload(
+            filePath,
+            _image!,
+            fileOptions: const FileOptions(upsert: true),
+          );
+
+      // Ambil URL gambar yang baru diunggah
+      final imageUrl = Supabase.instance.client.storage
+          .from('profile_pictures')
+          .getPublicUrl(filePath);
+
+      return imageUrl;
+    } catch (e) {
+      _showErrorDialog('Gagal mengunggah gambar: ${e.toString()}');
+      return null;
+    }
+  }
+
+  void _showEditProfileDialog() {
+    showCupertinoDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return CupertinoAlertDialog(
+            title: const Text('Edit Profil'),
+            content: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () async {
+                      await _pickImage(ImageSource.gallery);
+                      setState(() {}); // Perbarui tampilan jika gambar berubah
+                    },
+                    child: CircleAvatar(
+                      radius: 50,
+                      backgroundImage: _image != null
+                          ? FileImage(_image!)
+                          : (_profileUrl != null
+                              ? NetworkImage(_profileUrl!)
+                              : const AssetImage('images/logo.png')
+                                  as ImageProvider),
+                      child: _image == null
+                          ? const Icon(Icons.camera_alt,
+                              size: 40, color: Colors.grey)
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  CupertinoTextField(
+                    controller: _nameController,
+                    placeholder: 'Nama Baru',
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  const SizedBox(height: 16),
+                  CupertinoTextField(
+                    controller: _emailController,
+                    placeholder: 'Email Baru',
+                    padding: const EdgeInsets.all(12),
+                  ),
+                  const SizedBox(height: 16),
+                  CupertinoTextField(
+                    controller: _phoneController,
+                    placeholder: 'Nomor Telepon Baru',
+                    padding: const EdgeInsets.all(12),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text(
+                  'Batal',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+              CupertinoDialogAction(
+                child: const Text('Simpan'),
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await _updateUserProfile();
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _updateUserProfile() async {
+    final user = Supabase.instance.client.auth.currentUser;
+
+    if (user == null) {
+      _showErrorDialog("User tidak ditemukan.");
+      return;
+    }
+
+    try {
+      String? imageUrl;
+
+      // Jika ada gambar baru, upload ke Supabase Storage
+      if (_image != null) {
+        imageUrl = await _uploadImage(user.id);
+      }
+
+      // Update data user di database Supabase
+      await Supabase.instance.client.from('users').update({
+        'display_name': _nameController.text, // Simpan nama baru
+        'email': _emailController.text,
+        'phone': _phoneController.text,
+        if (imageUrl != null) 'profile_url': imageUrl,
+      }).eq('id', user.id);
+
+      // Perbarui UI dengan data terbaru
+      setState(() {
+        _profileUrl = imageUrl ?? _profileUrl;
+        _displayName = _nameController.text; // Perbarui nama yang ditampilkan
+      });
+
+      _showSuccessDialog('Profil berhasil diperbarui!');
+    } catch (e) {
+      _showErrorDialog('Gagal memperbarui profil: ${e.toString()}');
+    }
   }
 
   Widget _buildSectionTitle(String title) {

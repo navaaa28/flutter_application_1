@@ -74,7 +74,7 @@ class _ProfileTabState extends State<ProfileTab> {
         .eq('id', user.id)
         .single();
 
-    if (response != null && response['profile_url'] != null) {
+    if (response['profile_url'] != null) {
       setState(() {
         _profileUrl = response['profile_url'];
       });
@@ -91,7 +91,7 @@ class _ProfileTabState extends State<ProfileTab> {
         .eq('id', user.id)
         .single();
 
-    if (response != null && response['display_name'] != null) {
+    if (response['display_name'] != null) {
       setState(() {
         _displayName = response['display_name'];
         _departemen = response['departemen'];
@@ -140,11 +140,6 @@ class _ProfileTabState extends State<ProfileTab> {
         middle: Text(
           'Halaman Profil',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-        trailing: CupertinoButton(
-          padding: EdgeInsets.zero,
-          onPressed: widget.informasi,
-          child: const Icon(CupertinoIcons.info_circle, size: 28),
         ),
       ),
       child: Container(
@@ -209,7 +204,7 @@ class _ProfileTabState extends State<ProfileTab> {
               ),
               const SizedBox(height: 16),
               Text(
-                _departemen,
+                'Departemen: $_departemen',
                 style: GoogleFonts.alexandria(
                   fontSize: 18,                  
                   color: Colors.white,
@@ -265,6 +260,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         icon: Icons.history,
                         title: 'Riwayat Aktivitas',
                         onTap: () => _navigateTo(ActivityPage()),
+                        
                       ),
                       _buildSectionTitle('Dukungan & Bantuan'),
                       _buildProfileMenuItem(
