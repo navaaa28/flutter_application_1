@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_application_1/HalamanHome/to_do_page.dart';
@@ -20,6 +21,12 @@ class HomeTab extends StatefulWidget {
   @override
   _HomeTabState createState() => _HomeTabState();
 }
+class TeamMember {
+  final String name;
+  final String photoUrl;
+
+  TeamMember({required this.name, required this.photoUrl});
+}
 
 class _HomeTabState extends State<HomeTab> {
   String? checkInTime;
@@ -31,12 +38,17 @@ class _HomeTabState extends State<HomeTab> {
   bool isDarkMode = false;
   final Color primaryColor = Color(0xFF2A2D7C);
   final Color accentColor = Color(0xFF00C2FF);
+  final Color lightBlue = Color.fromARGB(255, 0, 0, 0);
   final LinearGradient primaryGradient = LinearGradient(
       colors: [Color(0xFF2A2D7C), Color(0xFF00C2FF)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight);
+      final List<TeamMember> teamMembers = [
+  TeamMember(name: 'Ade Gunawah - 22552011064', photoUrl: 'https://twthndrmrdkhtvgodqae.supabase.co/storage/v1/object/public/anggota//1234567.jpg'),
+  TeamMember(name: 'Dimas Naufal Nugroho - 22552011185', photoUrl: 'https://twthndrmrdkhtvgodqae.supabase.co/storage/v1/object/public/anggota//123456.jpg'),
+  TeamMember(name: 'Rival Muhammad Dzikri - 22552011045', photoUrl: 'https://twthndrmrdkhtvgodqae.supabase.co/storage/v1/object/public/anggota//12345.jpg'),
+];
 
-  final Color lightBlue = Color.fromARGB(255, 0, 0, 0);
 
   @override
   void initState() {
@@ -72,7 +84,29 @@ class _HomeTabState extends State<HomeTab> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _fetchData();
+  _setupFirebaseListeners();
   }
+
+  void _setupFirebaseListeners() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Menerima notifikasi saat aplikasi berjalan');
+      print('Judul: ${message.notification?.title}');
+      print('Isi: ${message.notification?.body}');
+
+      // Akses custom data
+      final route = message.data['route'];
+      final id = message.data['id'];
+      final type = message.data['type'];
+
+      print('Route: $route, ID: $id, Type: $type');
+
+      // Contoh: Navigasi ke halaman tertentu berdasarkan custom data
+      if (route == '/detail') {
+        Navigator.pushNamed(context, '/detail', arguments: id);
+      }
+    });
+  }
+
 
   Future<void> _fetchData() async {
     await fetchAttendanceData();
@@ -561,7 +595,7 @@ class _HomeTabState extends State<HomeTab> {
                                     ),
                                     SizedBox(height: 4),
                                     Text(
-                                      'Shift Hari Ini: $shift Libur!!!', // ✅ Interpolasi string yang benar
+                                      'Shift Hari Ini: $shift Libur!!!',
                                       style: GoogleFonts.poppins(
                                         fontSize: 14,
                                         color: Colors.white70,
@@ -576,6 +610,33 @@ class _HomeTabState extends State<HomeTab> {
                           ),
                         ),
                       ),
+                    ),
+                  ),                  
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Anggota Kelompok',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            color: primaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Container(
+                          height: 120,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: teamMembers.length,
+                            itemBuilder: (context, index) {
+                              return _buildTeamMember(teamMembers[index]);
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -613,7 +674,6 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                     ),
                   ),
-
                   // Grid Menu Section
                   Padding(
                     padding: EdgeInsets.all(24),
@@ -667,6 +727,28 @@ class _HomeTabState extends State<HomeTab> {
       ),
     );
   }
+
+  Widget _buildTeamMember(TeamMember member) {
+  return Container(
+    margin: EdgeInsets.symmetric(horizontal: 8),
+    child: Column(
+      children: [
+        CircleAvatar(
+          radius: 40,
+          backgroundImage: NetworkImage(member.photoUrl),
+        ),
+        SizedBox(height: 8),
+        Text(
+          member.name,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildTimeColumn(String title, String? time) {
     return Column(

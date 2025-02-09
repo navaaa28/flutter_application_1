@@ -19,7 +19,6 @@ class _KelolaIzinAplikasiState extends State<KelolaIzinAplikasi> {
   @override
   void initState() {
     super.initState();
-    // Memeriksa status izin saat pertama kali dibuka
     _checkPermissions();
   }
 

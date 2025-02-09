@@ -253,12 +253,10 @@ class _MenuTabState extends State<MenuTab> {
                                 child: CircleAvatar(
                                   radius: 28,
                                   backgroundColor: Colors.white,
-                                  // ignore: unnecessary_null_comparison
                                   backgroundImage: profileImageUrl != null
                                       ? NetworkImage(profileImageUrl)
                                       : AssetImage('images/logo.png')
                                           as ImageProvider,
-                                  // ignore: unnecessary_null_comparison
                                   child: profileImageUrl == null
                                       ? Icon(Icons.person, color: Colors.grey)
                                       : null,
