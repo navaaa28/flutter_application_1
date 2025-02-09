@@ -237,7 +237,6 @@ class _ProfileTabState extends State<ProfileTab> {
                         icon: Icons.person_outline,
                         title: 'Edit Profil',
                         onTap: _showEditProfileDialog,
-                        
                       ),
                       _buildProfileMenuItem(
                         icon: Icons.lock_outline,
@@ -318,6 +317,7 @@ class _ProfileTabState extends State<ProfileTab> {
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: _primaryColor,
+            decoration: TextDecoration.none,
           ),
         ),
       ),

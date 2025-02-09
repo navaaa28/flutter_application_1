@@ -110,6 +110,7 @@ class _HadirState extends State<Hadir> {
                                   fontWeight: FontWeight.w600,
                                   color: primaryColor,
                                   fontSize: 16,
+                                  decoration: TextDecoration.none,
                                 ),
                               ),
                             ),

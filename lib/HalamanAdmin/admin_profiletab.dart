@@ -1,9 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/HalamanAdmin/admin_laporan_page.dart';
-import 'package:flutter_application_1/HalamanAdmin/audit_sistem_page.dart.dart';
 import 'package:flutter_application_1/HalamanAdmin/backup_data_page.dart';
-import 'package:flutter_application_1/HalamanAdmin/manajemen_departemen.dart';
 import 'package:flutter_application_1/HalamanAdmin/manajemen_user.dart';
 import 'package:flutter_application_1/HalamanAwal/halaman_login.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -195,11 +193,6 @@ class _AdminProfileTabState extends State<AdminProfileTab> {
                     icon: Icons.people_alt,
                     title: 'Manajemen Pengguna',
                     onTap: () => _navigateTo(const ManajemenUserPage()),
-                  ),
-                  _buildProfileMenuItem(
-                    icon: Icons.business,
-                    title: 'Manajemen Departemen',
-                    onTap: () => _navigateTo(const ManajemenDepartemenPage()),
                   ),
                   _buildProfileMenuItem(
                     icon: Icons.edit_square,

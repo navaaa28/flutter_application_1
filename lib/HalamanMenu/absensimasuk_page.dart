@@ -192,6 +192,7 @@ class _AbsenMasukPageState extends State<AbsenMasukPage> {
             color: Colors.white,
             fontWeight: FontWeight.w600,
             fontSize: 18,
+            decoration: TextDecoration.none,
           ),
         ),
         backgroundColor: primaryColor,

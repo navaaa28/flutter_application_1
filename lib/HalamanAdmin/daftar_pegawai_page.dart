@@ -109,7 +109,12 @@ void _showDetailPegawai(Map<String, dynamic> pegawai) {
                 _buildDetailItem('Nomor Telepon', pegawai['phone'] ?? 'N/A'),
                 
                 SizedBox(height: 10),
-                Text('Jabatan:', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text('Jabatan:', style: GoogleFonts.poppins(
+                  fontSize: 16, 
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.none,
+                  )
+                ),
                 CupertinoButton(
                   child: Text(selectedRole),
                   onPressed: () {
@@ -120,7 +125,14 @@ void _showDetailPegawai(Map<String, dynamic> pegawai) {
                 ),
                 
                 SizedBox(height: 10),
-                Text('Departemen:', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text('Departemen:', style: GoogleFonts.poppins(
+                  textStyle: const TextStyle(
+                  fontSize: 16, 
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.none,
+                    ),
+                  ),
+                ),
                 CupertinoButton(
                   child: Text(selectedDepartemen),
                   onPressed: () {
@@ -131,7 +143,12 @@ void _showDetailPegawai(Map<String, dynamic> pegawai) {
                 ),
                 
                 SizedBox(height: 20),
-                Text('Gaji:', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600)),
+                Text('Gaji:', style: GoogleFonts.poppins(
+                  fontSize: 16, 
+                  fontWeight: FontWeight.w600,
+                  decoration: TextDecoration.none,
+                  )
+                ),
                 CupertinoTextField(
                   controller: salaryController,
                   keyboardType: TextInputType.number,
@@ -220,6 +237,7 @@ Widget _buildDetailItem(String title, String value) {
             fontSize: 12,
             color: CupertinoColors.secondaryLabel,
             fontWeight: FontWeight.w500,
+            decoration: TextDecoration.none,
           ),
         ),
         SizedBox(height: 4),
@@ -229,6 +247,7 @@ Widget _buildDetailItem(String title, String value) {
             fontSize: 16,
             color: CupertinoColors.label,
             fontWeight: FontWeight.w600,
+            decoration: TextDecoration.none,
           ),
         ),
       ],
