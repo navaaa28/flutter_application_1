@@ -31,11 +31,10 @@ class _LemburanPageState extends State<LemburanPage> {
 
   Future<void> _fetchRequests() async {
     final waitingResponse = await supabase
-    .from('lembur')
-    .select()
-    .eq('status', 'Menunggu Persetujuan Atasan')
-    .order('waktu_mulai');
-
+        .from('lembur')
+        .select()
+        .eq('status', 'Menunggu Persetujuan Atasan')
+        .order('waktu_mulai');
 
     final approvedResponse = await supabase
         .from('lembur')
@@ -50,32 +49,24 @@ class _LemburanPageState extends State<LemburanPage> {
         .order('waktu_mulai');
 
     if (mounted) {
-  setState(() {
-    waitingRequests = List<Map<String, dynamic>>.from(waitingResponse);
-    approvedRequests = List<Map<String, dynamic>>.from(approvedResponse);
-    rejectedRequests = List<Map<String, dynamic>>.from(rejectedResponse);
-  });
-}
+      setState(() {
+        waitingRequests = List<Map<String, dynamic>>.from(waitingResponse);
+        approvedRequests = List<Map<String, dynamic>>.from(approvedResponse);
+        rejectedRequests = List<Map<String, dynamic>>.from(rejectedResponse);
+      });
+    }
   }
 
   Future<void> _updateStatus(
       String requestId, String newStatus, int index, String statusType) async {
     try {
+      // Update status di Supabase
       await supabase
           .from('lembur')
           .update({'status': newStatus}).eq('id', requestId);
 
+      // Memuat ulang data setelah update
       await _fetchRequests();
-
-      setState(() {
-        if (statusType == 'Menunggu Persetujuan Atasan') {
-          waitingRequests[index]['status'] = newStatus;
-        } else if (statusType == 'Diizinkan') {
-          approvedRequests[index]['status'] = newStatus;
-        } else if (statusType == 'Ditolak') {
-          rejectedRequests[index]['status'] = newStatus;
-        }
-      });
 
       _showDialog('Status Diperbarui', 'Status Lemburan berhasil diperbarui.');
     } catch (e) {
@@ -137,20 +128,23 @@ class _LemburanPageState extends State<LemburanPage> {
         tabBuilder: (context, index) {
           switch (index) {
             case 0:
-              return _buildRequestList(waitingRequests, 'Menunggu Persetujuan Atasan');
+              return _buildRequestList(
+                  waitingRequests, 'Menunggu Persetujuan Atasan');
             case 1:
               return _buildRequestList(approvedRequests, 'Diizinkan');
             case 2:
               return _buildRequestList(rejectedRequests, 'Ditolak');
             default:
-              return _buildRequestList(waitingRequests, 'Menunggu Persetujuan Atasan');
+              return _buildRequestList(
+                  waitingRequests, 'Menunggu Persetujuan Atasan');
           }
         },
       ),
     );
   }
 
-  Widget _buildRequestList(List<Map<String, dynamic>> requestList, String statusType) {
+  Widget _buildRequestList(
+      List<Map<String, dynamic>> requestList, String statusType) {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(
@@ -167,6 +161,13 @@ class _LemburanPageState extends State<LemburanPage> {
           padding: const EdgeInsets.all(16),
           itemCount: requestList.length,
           itemBuilder: (context, index) {
+            // Pengecekan index dan daftar
+            if (requestList.isEmpty ||
+                index < 0 ||
+                index >= requestList.length) {
+              return SizedBox(); // Kembalikan widget kosong jika index tidak valid
+            }
+
             final request = requestList[index];
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
@@ -186,13 +187,14 @@ class _LemburanPageState extends State<LemburanPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Tampilkan detail request
                     Text(
                       'Nama: ${request['display_name']}',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
-                        decoration:TextDecoration.none
+                        decoration: TextDecoration.none,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -201,76 +203,26 @@ class _LemburanPageState extends State<LemburanPage> {
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.white.withOpacity(0.9),
-                        decoration:TextDecoration.none
+                        decoration: TextDecoration.none,
                       ),
                     ),
-                    Text(
-                      'Waktu Selesai: ${request['waktu_selesai']}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                        decoration:TextDecoration.none
-                      ),
-                    ),
-                    Text(
-                      'Diajukan : ${request['created_at']}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                        decoration:TextDecoration.none
-                      ),
-                    ),
-                    Text(
-                      'Role: ${request['role']}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                        decoration:TextDecoration.none
-                      ),
-                    ),
-                    Text(
-                      'Status: ${request['status']}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                        decoration:TextDecoration.none
-                      ),
-                    ),                 
-                    const SizedBox(height: 8),
+                    // Tombol Diizinkan dan Ditolak
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CupertinoButton(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           onPressed: () {
-                            _updateStatus(request['id'].toString(),
-                                'Diizinkan', index, statusType);
+                            _updateStatus(request['id'].toString(), 'Diizinkan',
+                                index, statusType);
                           },
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          child: Text(
-                            'Diizinkan',
-                            style: GoogleFonts.poppins(
-                              color: primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          child: Text('Diizinkan'),
                         ),
                         CupertinoButton(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           onPressed: () {
-                            _updateStatus(request['id'].toString(),
-                                'Ditolak', index, statusType);
+                            _updateStatus(request['id'].toString(), 'Ditolak',
+                                index, statusType);
                           },
-                          color: const Color.fromARGB(255, 255, 0, 0),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Text(
-                            'Ditolak',
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                          child: Text('Ditolak'),
                         ),
                       ],
                     ),

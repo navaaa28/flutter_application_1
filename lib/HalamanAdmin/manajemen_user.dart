@@ -28,10 +28,13 @@ class _ManajemenUserPageState extends State<ManajemenUserPage> {
 
   Future<void> _deleteUser(String userId) async {
     try {
-      // Hapus pengguna dari tabel 'users'
+      // Menghapus pengguna dari tabel `users`
       await Supabase.instance.client.from('users').delete().eq('id', userId);
 
-      // Perbarui state setelah penghapusan
+      // Menghapus pengguna dari sistem autentikasi
+      await Supabase.instance.client.auth.admin.deleteUser(userId);
+
+      // Memperbarui daftar pengguna setelah penghapusan
       setState(() {
         _usersFuture = _fetchUsers();
       });

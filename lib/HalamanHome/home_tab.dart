@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_application_1/HalamanHome/to_do_page.dart';
@@ -46,7 +45,8 @@ class _HomeTabState extends State<HomeTab> {
       final List<TeamMember> teamMembers = [
   TeamMember(name: 'Ade Gunawah - 22552011064', photoUrl: 'https://twthndrmrdkhtvgodqae.supabase.co/storage/v1/object/public/anggota//1234567.jpg'),
   TeamMember(name: 'Dimas Naufal Nugroho - 22552011185', photoUrl: 'https://twthndrmrdkhtvgodqae.supabase.co/storage/v1/object/public/anggota//123456.jpg'),
-  TeamMember(name: 'Rival Muhammad Dzikri - 22552011045', photoUrl: 'https://twthndrmrdkhtvgodqae.supabase.co/storage/v1/object/public/anggota//12345.jpg'),
+  TeamMember(name: 'Rival Muhammad Dzikri - 22552011045', photoUrl: 'https://twthndrmrdkhtvgodqae.supabase.co/storage/v1/object/public/anggota//Gambar%20WhatsApp%202025-02-09%20pukul%2018.32.36_fc73f869.jpg'),
+  TeamMember(name: 'Dany Faturrochman - 22552011080', photoUrl: 'https://twthndrmrdkhtvgodqae.supabase.co/storage/v1/object/public/anggota//Gambar%20WhatsApp%202025-02-09%20pukul%2017.27.07_41e7ee23.jpg'),
 ];
 
 
@@ -84,28 +84,8 @@ class _HomeTabState extends State<HomeTab> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _fetchData();
-  _setupFirebaseListeners();
   }
 
-  void _setupFirebaseListeners() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Menerima notifikasi saat aplikasi berjalan');
-      print('Judul: ${message.notification?.title}');
-      print('Isi: ${message.notification?.body}');
-
-      // Akses custom data
-      final route = message.data['route'];
-      final id = message.data['id'];
-      final type = message.data['type'];
-
-      print('Route: $route, ID: $id, Type: $type');
-
-      // Contoh: Navigasi ke halaman tertentu berdasarkan custom data
-      if (route == '/detail') {
-        Navigator.pushNamed(context, '/detail', arguments: id);
-      }
-    });
-  }
 
 
   Future<void> _fetchData() async {
